@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "failures": [
+    {
+      "id": "NO_AUTO_COMMIT",
+      "pattern": "Dispatcher prompts that force git add/git commit create unwanted repository history.",
+      "avoidance": "Do not run git add or git commit unless the user explicitly asks for a commit."
+    },
+    {
+      "id": "TYPECHECK_ANY_MASKING",
+      "pattern": "Broad any casts and whole-file ts-nocheck can make tsc green while destroying its usefulness.",
+      "avoidance": "Prefer precise stubs, type guards, and narrow compatibility aliases."
+    },
+    {
+      "id": "SOURCE_BEFORE_STUBS",
+      "pattern": "Editing many source call sites before fixing broken ambient declarations causes noisy churn.",
+      "avoidance": "Stage 1 must repair src/types and package stubs first."
+    },
+    {
+      "id": "UNSUPPORTED_CODEX_MODELS",
+      "pattern": "The stock codex-loop fallback list can include models unsupported by the current ChatGPT/Codex account.",
+      "avoidance": "Try Codex CLI's configured default model first, then fall back to explicit model names."
+    },
+    {
+      "id": "BWRAP_NAMESPACE_BLOCKED",
+      "pattern": "Codex CLI workspace-write/full-auto sandbox can fail when bubblewrap cannot create an unprivileged namespace.",
+      "avoidance": "Run the loop with Codex sandbox bypass in this already-controlled workspace, while keeping the prompt scoped and forbidding commits."
+    }
+  ]
+}

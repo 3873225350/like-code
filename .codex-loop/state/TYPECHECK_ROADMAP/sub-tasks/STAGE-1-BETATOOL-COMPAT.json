@@ -1,0 +1,49 @@
+{
+  "id": "STAGE-1-BETATOOL-COMPAT",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Expose the BetaTool type from the Anthropic SDK beta messages .mjs ambient boundary used by api.ts and toolSchemaCache.ts.",
+  "files_changed": [
+    "src/types/external-modules.d.ts"
+  ],
+  "changes": [
+    "Added a narrow BetaTool interface to the existing @anthropic-ai/sdk/resources/beta/messages/messages.mjs declaration.",
+    "Included the BetaTool.InputSchema namespace shape needed by tool schema code without changing runtime imports or call sites."
+  ],
+  "verification": {
+    "commands": [
+      "npm run build",
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "rg \"error (TS2305|TS2307|TS2614|TS2459)\" /tmp/likecode-tsc.log"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 496,
+    "total_errors": 495,
+    "top_error_codes": {
+      "TS2339": 219,
+      "TS2345": 70,
+      "TS2322": 65,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2307": 6,
+      "TS2305": 4
+    },
+    "stage1_error_counts": {
+      "TS2305": 4,
+      "TS2307": 6,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "notes": "The src/utils/api.ts and src/utils/toolSchemaCache.ts TS2305 diagnostics for BetaTool no longer appear in the tsc log."
+  },
+  "next_candidates": [
+    "Export DiscoverySignal from src/services/skillSearch/signals.ts.",
+    "Export Permutations from src/types/utils.ts.",
+    "Add targeted internal-only module declarations for protectedNamespace, attributionTrailer, TerminalCaptureTool prompt, VerifyPlanExecutionTool constants, peerSessions, and workerAgent."
+  ]
+}

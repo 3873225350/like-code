@@ -1,0 +1,29 @@
+# Local configuration and automation state
+.claude/
+.codex-loop/
+.env
+.env.*
+!.env.example
+
+# Dependencies and caches
+node_modules/
+**/__pycache__/
+*.log
+
+# Source and research/reference material are intentionally excluded from npm
+# packages. Runtime distribution should use the bundled files declared in
+# package.json "files".
+src/
+packages/
+reference/
+docs/
+patches/
+
+# Local package artifacts
+*.tgz
+
+# Misc development files
+tsconfig.json
+bun.lock
+package-lock.json
+bunfig.toml

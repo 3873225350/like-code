@@ -1,0 +1,47 @@
+{
+  "id": "STAGE-1-SDKMESSAGE-EXPORT",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Expose the canonical SDKMessage type from the remote SDK message adapter for SSH session stubs that import through that adapter boundary.",
+  "files_changed": [
+    "src/remote/sdkMessageAdapter.ts"
+  ],
+  "changes": [
+    "Added a type-only re-export of SDKMessage from src/entrypoints/agentSdkTypes.js in src/remote/sdkMessageAdapter.ts."
+  ],
+  "verification": {
+    "commands": [
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "npm run build"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 459,
+    "total_errors": 458,
+    "top_error_codes": {
+      "TS2339": 186,
+      "TS2345": 68,
+      "TS2322": 56,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2305": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2307": 6
+    },
+    "stage1_error_counts": {
+      "TS2305": 10,
+      "TS2307": 6,
+      "TS2614": 1,
+      "TS2459": 0
+    },
+    "notes": "The SSHSessionManager TS2459 diagnostic for SDKMessage no longer appears in the tsc log."
+  },
+  "next_candidates": [
+    "Add TaskStateBase to src/Tool.ts for local workflow and monitor MCP tasks.",
+    "Add isReplBridgeActive to src/bootstrap/state.ts for SendMessageTool and ToolSearchTool prompt imports.",
+    "Add targeted internal-only module declarations for protectedNamespace, attributionTrailer, TerminalCaptureTool prompt, VerifyPlanExecutionTool constants, peerSessions, and workerAgent."
+  ]
+}

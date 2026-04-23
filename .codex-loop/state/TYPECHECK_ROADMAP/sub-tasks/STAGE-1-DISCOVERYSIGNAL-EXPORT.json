@@ -1,0 +1,51 @@
+{
+  "id": "STAGE-1-DISCOVERYSIGNAL-EXPORT",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Export the DiscoverySignal type from the skill search signals boundary used by attachments.ts.",
+  "files_changed": [
+    "src/services/skillSearch/signals.ts"
+  ],
+  "changes": [
+    "Added a narrow DiscoverySignal string-literal union for the existing skill_discovery attachment signal field.",
+    "Kept the attachments.ts import type-only so the change adds no runtime code."
+  ],
+  "verification": {
+    "commands": [
+      "npm run build",
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "rg \"error (TS2305|TS2307|TS2614|TS2459)\" /tmp/likecode-tsc.log"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 494,
+    "total_errors": 493,
+    "top_error_codes": {
+      "TS2339": 219,
+      "TS2345": 70,
+      "TS2322": 65,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2307": 6,
+      "TS2749": 5,
+      "TS2739": 5,
+      "TS2488": 5,
+      "TS2305": 2
+    },
+    "stage1_error_counts": {
+      "TS2305": 2,
+      "TS2307": 6,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "notes": "The src/utils/attachments.ts TS2305 diagnostic for DiscoverySignal no longer appears in the tsc log."
+  },
+  "next_candidates": [
+    "Export SdkWorkflowProgress from src/types/tools.ts.",
+    "Add targeted internal-only module declarations for protectedNamespace, attributionTrailer, TerminalCaptureTool prompt, VerifyPlanExecutionTool constants, peerSessions, and workerAgent."
+  ]
+}

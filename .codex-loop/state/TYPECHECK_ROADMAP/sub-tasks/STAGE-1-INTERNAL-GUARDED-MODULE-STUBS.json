@@ -1,0 +1,55 @@
+{
+  "id": "STAGE-1-INTERNAL-GUARDED-MODULE-STUBS",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Add targeted ambient declarations for guarded internal-only dynamic imports that TypeScript can resolve through wildcard module stubs.",
+  "files_changed": [
+    "src/types/internal-modules.d.ts"
+  ],
+  "changes": [
+    "Declared the missing workerAgent getCoordinatorAgents export using the existing AgentDefinition boundary.",
+    "Declared the peerSessions postInterClaudeMessage result shape used by SendMessageTool.",
+    "Declared guarded internal tool-name constants for TerminalCaptureTool/prompt and VerifyPlanExecutionTool/constants.",
+    "Added intended attributionTrailer and protectedNamespace wildcard declarations; fresh verification shows the same-directory relative imports still require a source-adjacent declaration or shim in a later slice."
+  ],
+  "verification": {
+    "commands": [
+      "npm run build",
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "rg \"error (TS2305|TS2307|TS2614|TS2459)\" /tmp/likecode-tsc.log"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 491,
+    "total_errors": 488,
+    "top_error_codes": {
+      "TS2339": 220,
+      "TS2345": 70,
+      "TS2322": 65,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2749": 5,
+      "TS2739": 5,
+      "TS2488": 5
+    },
+    "stage1_error_counts": {
+      "TS2305": 0,
+      "TS2307": 2,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "remaining_stage1_diagnostics": [
+      "src/utils/attribution.ts(384,46): error TS2307: Cannot find module './attributionTrailer.js' or its corresponding type declarations.",
+      "src/utils/envUtils.ts(142,59): error TS2307: Cannot find module './protectedNamespace.js' or its corresponding type declarations."
+    ],
+    "notes": "The workerAgent, peerSessions, TerminalCaptureTool/prompt, and VerifyPlanExecutionTool/constants TS2307 diagnostics no longer appear in the tsc log."
+  },
+  "next_candidates": [
+    "Resolve same-directory relative utility imports for attributionTrailer and protectedNamespace with source-adjacent declarations or narrow shims.",
+    "Continue Stage 1 only until TS2307 reaches zero."
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "STAGE-1-LSP-CONFIG-TYPES",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Export the LSP server config boundary types used by plugins and make scoped LSP configs expose the validated config fields consumed by the LSP manager.",
+  "files_changed": [
+    "src/services/lsp/types.ts"
+  ],
+  "changes": [
+    "Added an exported LspServerConfig interface matching the plugin LSP schema fields.",
+    "Updated ScopedLspServerConfig to extend LspServerConfig and include the dynamic plugin scope plus source metadata.",
+    "Added a shared LspServerStatus union with the stopping runtime state used by LSP server lifecycle code."
+  ],
+  "verification": {
+    "commands": [
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "npm run build"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 467,
+    "total_errors": 459,
+    "top_error_codes": {
+      "TS2339": 186,
+      "TS2345": 68,
+      "TS2322": 56,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2305": 10
+    },
+    "stage1_error_counts": {
+      "TS2305": 10,
+      "TS2307": 6,
+      "TS2614": 1,
+      "TS2459": 1
+    },
+    "notes": "The LspServerConfig TS2305 errors and LSPServerManager extensionToLanguage TS2339 errors no longer appear in the tsc log."
+  },
+  "next_candidates": [
+    "Export SDKMessage from src/remote/sdkMessageAdapter.ts.",
+    "Add TaskStateBase to src/Tool.ts for local workflow and monitor MCP tasks.",
+    "Add targeted internal-only module declarations for protectedNamespace, attributionTrailer, TerminalCaptureTool prompt, VerifyPlanExecutionTool constants, peerSessions, and workerAgent."
+  ]
+}

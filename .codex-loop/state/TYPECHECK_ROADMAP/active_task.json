@@ -1,0 +1,112 @@
+{
+  "active_task_id": "STAGE-2-ENV-MACROS",
+  "status": "in_progress",
+  "roadmap_file": "docs/typecheck-roadmap.md",
+  "loop_roadmap_file": ".codex-loop/state/TYPECHECK_ROADMAP/TYPECHECK_ROADMAP.md",
+  "objective": "Execute Stage 2 of the typecheck roadmap: remove false TS2367 diagnostics caused by environment constants and compile-time macro literals while preserving Bun build output behavior.",
+  "allowed_scope": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".codex-loop/state/TYPECHECK_ROADMAP/*",
+    ".codex-loop/state/TYPECHECK_ROADMAP/sub-tasks/*.json",
+    "docs/typecheck-roadmap.md"
+  ],
+  "avoid_scope": [
+    "Do not broad-add @ts-nocheck.",
+    "Do not replace compile-time feature() gates with runtime-only helpers when dead-code elimination matters.",
+    "Do not make unrelated source edits outside the active slice.",
+    "Do not run git add or git commit."
+  ],
+  "local_patches": [],
+  "latest_slice": {
+    "id": "STAGE-2-RATELIMITTIER-MAX-TIERS",
+    "status": "completed",
+    "completed_at": "2026-04-23 14:42 CST",
+    "files_changed": [
+      "src/services/oauth/types.ts",
+      "src/types/missing-stubs.d.ts",
+      "docs/typecheck-roadmap.md",
+      ".codex-loop/state/TYPECHECK_ROADMAP/TYPECHECK_ROADMAP.md",
+      ".codex-loop/state/TYPECHECK_ROADMAP/active_task.json",
+      ".codex-loop/state/TYPECHECK_ROADMAP/sub-tasks/STAGE-2-RATELIMITTIER-MAX-TIERS.json"
+    ],
+    "verification": {
+      "build": "pass",
+      "tsc_exit": 2,
+      "tsc_log": "/tmp/likecode-tsc.log",
+      "total_errors": 458,
+      "top_error_codes": {
+        "TS2339": 220,
+        "TS2345": 70,
+        "TS2322": 65,
+        "TS2554": 19,
+        "TS2353": 10,
+        "TS2769": 7,
+        "TS2551": 6,
+        "TS2749": 5,
+        "TS2739": 5,
+        "TS2488": 5,
+        "TS2741": 4,
+        "TS2365": 4,
+        "TS2352": 4,
+        "TS2367": 1
+      },
+      "stage1_error_counts": {
+        "TS2305": 0,
+        "TS2307": 0,
+        "TS2614": 0,
+        "TS2459": 0
+      },
+      "stage2_error_counts": {
+        "TS2367": 1
+      }
+    }
+  },
+  "checker_loss": {
+    "checked_at": "2026-04-23 14:42 CST",
+    "target_state": "STAGE-2-ENV-MACROS TS2367 diagnostics near zero with build passing and macro dead-code behavior preserved.",
+    "actual_state": "Fresh checker rerun confirms Stage 1 import/declaration diagnostics remain cleared. The RateLimitTier slice added the Claude Max 5x and 20x tier literals to the central OAuth union and ambient mirror, clearing both /upgrade RateLimitTier TS2367 diagnostics. npm run build passes. Full tsc still exits 2 with 458 downstream errors. The only remaining TS2367 diagnostic is the SDK content-block union mismatch in src/services/api/logging.ts.",
+    "loss_score": 1,
+    "blocking_reasons": [
+      "The remaining src/services/api/logging.ts diagnostic belongs with SDK content-block union handling for Stage 3 unless later analysis proves otherwise."
+    ],
+    "verification": {
+      "build": "pass",
+      "tsc_exit": 2,
+      "tsc_log": "/tmp/likecode-tsc.log",
+      "total_errors": 458,
+      "top_error_codes": {
+        "TS2339": 220,
+        "TS2345": 70,
+        "TS2322": 65,
+        "TS2554": 19,
+        "TS2353": 10,
+        "TS2769": 7,
+        "TS2551": 6,
+        "TS2749": 5,
+        "TS2739": 5,
+        "TS2488": 5,
+        "TS2741": 4,
+        "TS2365": 4,
+        "TS2352": 4,
+        "TS2367": 1
+      },
+      "stage1_error_counts": {
+        "TS2305": 0,
+        "TS2307": 0,
+        "TS2614": 0,
+        "TS2459": 0
+      },
+      "stage2_error_counts": {
+        "TS2367": 1
+      },
+      "remaining_stage2_diagnostics": [
+        "src/services/api/logging.ts(677,11): TS2367 SDK content block union mismatch"
+      ]
+    }
+  },
+  "next_candidates": [
+    "Promote the remaining src/services/api/logging.ts SDK content-block TS2367 to Stage 3 message/content-block handling.",
+    "Confirm Stage 2 can be marked complete once the main agent accepts that no macro-related TS2367 diagnostics remain."
+  ]
+}

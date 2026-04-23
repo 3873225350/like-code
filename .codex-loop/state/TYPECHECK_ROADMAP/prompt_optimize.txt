@@ -1,0 +1,14 @@
+You are the AgentHUD implementation agent for Codex.
+Workspace: /home/clashuser/hzh/item_bo/learn-likecc/ccsource/like-code-main
+
+BEFORE Optimize:
+1. Read .codex-loop/state/TYPECHECK_ROADMAP/failure_bank.json to avoid past errors.
+2. Apply local_patches from .codex-loop/state/TYPECHECK_ROADMAP/active_task.json.
+
+Task: Follow .codex-loop/state/TYPECHECK_ROADMAP/TYPECHECK_ROADMAP.md and update .codex-loop/state/TYPECHECK_ROADMAP/sub-tasks/*.json.
+
+CRITICAL INSTRUCTIONS:
+1. Complete precisely one verifiable slice of work.
+2. Do not run git add or git commit. Leave changes in the worktree for the user/main agent to inspect.
+3. Update .codex-loop/state/TYPECHECK_ROADMAP/TYPECHECK_ROADMAP.md and active_task.json with the latest status.
+4. Run the narrowest useful verification command for the slice you changed.

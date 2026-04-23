@@ -1,0 +1,55 @@
+{
+  "id": "STAGE-1-RELATIVE-UTILITY-SHIMS",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Resolve the final same-directory relative utility imports that wildcard ambient declarations did not satisfy.",
+  "files_changed": [
+    "src/utils/attributionTrailer.d.ts",
+    "src/utils/protectedNamespace.d.ts"
+  ],
+  "changes": [
+    "Added a source-adjacent declaration for ./attributionTrailer.js with the buildPRTrailers export consumed by src/utils/attribution.ts.",
+    "Added a source-adjacent declaration for ./protectedNamespace.js with the checkProtectedNamespace export consumed by src/utils/envUtils.ts.",
+    "Kept the declarations narrow and runtime-free so guarded internal imports remain excluded from external build output."
+  ],
+  "verification": {
+    "commands": [
+      "npm run build",
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "rg \"error (TS2305|TS2307|TS2614|TS2459)\" /tmp/likecode-tsc.log"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 488,
+    "total_errors": 486,
+    "top_error_codes": {
+      "TS2339": 220,
+      "TS2345": 70,
+      "TS2322": 65,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2749": 5,
+      "TS2739": 5,
+      "TS2488": 5,
+      "TS2741": 4,
+      "TS2365": 4,
+      "TS2352": 4
+    },
+    "stage1_error_counts": {
+      "TS2305": 0,
+      "TS2307": 0,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "remaining_stage1_diagnostics": [],
+    "notes": "The filtered Stage 1 diagnostic query returns no matches."
+  },
+  "next_candidates": [
+    "Promote the next active task to Stage 2 environment constants and compile-time macro false positives.",
+    "Preserve completed Stage 1 declarations unless a fresh checker pass regresses the Stage 1 code counts."
+  ]
+}

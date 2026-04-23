@@ -1,0 +1,85 @@
+{
+  "id": "STAGE-2-USER-TYPE-LITERAL-WIDENING",
+  "stage": "STAGE-2-ENV-MACROS",
+  "status": "completed",
+  "objective": "Clear the repeated user-type macro TS2367 false positives without changing external build dead-code behavior.",
+  "files_changed": [
+    "src/components/LogoV2/feedConfigs.tsx",
+    "src/commands/thinkback/thinkback.tsx",
+    "src/commands/mcp/mcp.tsx",
+    "src/commands/terminalSetup/terminalSetup.tsx",
+    "src/utils/autoRunIssue.tsx",
+    "src/tools/TaskStopTool/UI.tsx",
+    "src/components/permissions/BashPermissionRequest/bashToolUseOptions.tsx",
+    "src/components/DevBar.tsx",
+    "src/components/tasks/taskStatusUtils.tsx",
+    "src/components/NativeAutoUpdater.tsx",
+    "src/components/agents/ToolSelector.tsx",
+    "src/components/FeedbackSurvey/useMemorySurvey.tsx",
+    "src/components/MemoryUsageIndicator.tsx",
+    "src/tools/TaskOutputTool/TaskOutputTool.tsx",
+    "src/utils/status.tsx"
+  ],
+  "changes": [
+    "Replaced direct \"external\" === 'ant' and \"external\" !== 'ant' comparisons with the existing ((\"external\" as string) === 'ant') literal-widening pattern.",
+    "Kept the inlined literal visible at each branch so emitted JavaScript remains equivalent after TypeScript assertion stripping and Bun can still eliminate unreachable external-build branches.",
+    "Left NODE_ENV literal comparisons, RateLimitTier drift, and SDK content-block union TS2367 diagnostics for later Stage 2 slices."
+  ],
+  "verification": {
+    "commands": [
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "rg \"TS2367\" /tmp/likecode-tsc.log",
+      "npm run build"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 486,
+    "total_errors": 467,
+    "previous_stage2_error_counts": {
+      "TS2367": 29
+    },
+    "stage2_error_counts": {
+      "TS2367": 10
+    },
+    "top_error_codes": {
+      "TS2339": 220,
+      "TS2345": 70,
+      "TS2322": 65,
+      "TS2554": 19,
+      "TS2367": 10,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2749": 5,
+      "TS2739": 5,
+      "TS2488": 5,
+      "TS2741": 4,
+      "TS2365": 4,
+      "TS2352": 4
+    },
+    "stage1_error_counts": {
+      "TS2305": 0,
+      "TS2307": 0,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "remaining_stage2_diagnostics": [
+      "src/commands/upgrade/upgrade.tsx(16,57): TS2367 RateLimitTier vs default_claude_max_20x",
+      "src/commands/upgrade/upgrade.tsx(19,81): TS2367 RateLimitTier vs default_claude_max_20x",
+      "src/components/AutoUpdater.tsx(52,9): TS2367 production vs test",
+      "src/components/AutoUpdater.tsx(52,36): TS2367 production vs development",
+      "src/components/DevBar.tsx(9,10): TS2367 production vs development",
+      "src/components/NativeAutoUpdater.tsx(77,9): TS2367 production vs test",
+      "src/components/NativeAutoUpdater.tsx(77,36): TS2367 production vs development",
+      "src/interactiveHelpers.tsx(105,7): TS2367 production vs test",
+      "src/services/api/logging.ts(677,11): TS2367 SDK content block union mismatch",
+      "src/tools/testing/TestingPermissionTool.tsx(28,12): TS2367 production vs test"
+    ]
+  },
+  "next_candidates": [
+    "Apply the same literal-widening approach to inlined NODE_ENV comparisons where build output must remain unchanged.",
+    "Separately investigate the two RateLimitTier comparisons in src/commands/upgrade/upgrade.tsx.",
+    "Defer src/services/api/logging.ts SDK union mismatch to Stage 3 if it belongs with message content handling."
+  ]
+}

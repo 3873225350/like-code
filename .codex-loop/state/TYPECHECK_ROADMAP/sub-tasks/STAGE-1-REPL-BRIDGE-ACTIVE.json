@@ -1,0 +1,49 @@
+{
+  "id": "STAGE-1-REPL-BRIDGE-ACTIVE",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Expose the existing REPL bridge active state through the bootstrap state boundary used by SendMessageTool and ToolSearchTool.",
+  "files_changed": [
+    "src/bootstrap/state.ts"
+  ],
+  "changes": [
+    "Added replBridgeActive to the bootstrap State shape and initialized it to false.",
+    "Exported isReplBridgeActive() from src/bootstrap/state.ts so existing tool imports resolve without changing call sites.",
+    "Added setReplBridgeActive() as the paired typed lifecycle updater for the same state boundary."
+  ],
+  "verification": {
+    "commands": [
+      "npm run build",
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 498,
+    "total_errors": 496,
+    "top_error_codes": {
+      "TS2339": 219,
+      "TS2345": 70,
+      "TS2322": 64,
+      "TS2367": 29,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2307": 6,
+      "TS2305": 6
+    },
+    "stage1_error_counts": {
+      "TS2305": 6,
+      "TS2307": 6,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "notes": "The SendMessageTool and ToolSearchTool TS2305 diagnostics for isReplBridgeActive no longer appear in the tsc log."
+  },
+  "next_candidates": [
+    "Add BetaTool compatibility to the Anthropic SDK beta messages boundary.",
+    "Export DiscoverySignal from src/services/skillSearch/signals.ts.",
+    "Add targeted internal-only module declarations for protectedNamespace, attributionTrailer, TerminalCaptureTool prompt, VerifyPlanExecutionTool constants, peerSessions, and workerAgent."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "id": "STAGE-2-RATELIMITTIER-MAX-TIERS",
+  "stage": "STAGE-2-ENV-MACROS",
+  "status": "completed",
+  "objective": "Clear the two /upgrade RateLimitTier TS2367 diagnostics by aligning the OAuth tier union with Claude Max tier values used in source.",
+  "files_changed": [
+    "src/services/oauth/types.ts",
+    "src/types/missing-stubs.d.ts"
+  ],
+  "changes": [
+    "Added default_claude_max_5x and default_claude_max_20x to the central OAuth RateLimitTier union.",
+    "Applied the same tier literals to the local missing-stubs ambient mirror so wildcard imports keep the same shape.",
+    "Left src/services/api/logging.ts for Stage 3 content-block normalization."
+  ],
+  "verification": {
+    "commands": [
+      "npm run build",
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "perl -ne 'print \"$1\\n\" if /error (TS\\d+)/' /tmp/likecode-tsc.log | sort | uniq -c | sort -nr | head -30",
+      "perl -ne 'print if /error TS2367|error TS2305|error TS2307|error TS2614|error TS2459/' /tmp/likecode-tsc.log"
+    ],
+    "build": "pass",
+    "tsc_exit": 2,
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "previous_total_errors": 460,
+    "total_errors": 458,
+    "previous_stage2_error_counts": {
+      "TS2367": 3
+    },
+    "stage2_error_counts": {
+      "TS2367": 1
+    },
+    "top_error_codes": {
+      "TS2339": 220,
+      "TS2345": 70,
+      "TS2322": 65,
+      "TS2554": 19,
+      "TS2353": 10,
+      "TS2769": 7,
+      "TS2551": 6,
+      "TS2749": 5,
+      "TS2739": 5,
+      "TS2488": 5,
+      "TS2741": 4,
+      "TS2365": 4,
+      "TS2352": 4,
+      "TS2367": 1
+    },
+    "stage1_error_counts": {
+      "TS2305": 0,
+      "TS2307": 0,
+      "TS2614": 0,
+      "TS2459": 0
+    },
+    "remaining_stage2_diagnostics": [
+      "src/services/api/logging.ts(677,11): TS2367 SDK content block union mismatch"
+    ]
+  },
+  "next_candidates": [
+    "Promote the remaining src/services/api/logging.ts TS2367 diagnostic to Stage 3 message/content-block handling.",
+    "Confirm Stage 2 can be marked complete once the main agent accepts deferring content-block handling."
+  ]
+}

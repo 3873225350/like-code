@@ -1,0 +1,44 @@
+{
+  "id": "STAGE-1-MCPB-DECLARATIONS",
+  "stage": "STAGE-1-TYPE-INFRA",
+  "status": "completed",
+  "objective": "Add targeted ambient exports for @anthropic-ai/mcpb so DXT manifest and MCPB config code can typecheck without broad any masking.",
+  "files_changed": [
+    "src/types/external-modules.d.ts"
+  ],
+  "changes": [
+    "Declared McpbManifest and McpbUserConfigurationOption shapes used by DXT and plugin MCPB handling code.",
+    "Declared McpbManifestSchema.safeParse with the success/error shape consumed by validateManifest.",
+    "Declared getMcpConfigForManifest with the option object used by mcpbHandler."
+  ],
+  "verification": {
+    "commands": [
+      "npx tsc --noEmit --pretty false --noErrorTruncation > /tmp/likecode-tsc.log 2>&1",
+      "npm run build"
+    ],
+    "build": "pass",
+    "tsc_log": "/tmp/likecode-tsc.log",
+    "baseline_errors": 471,
+    "total_errors": 467,
+    "top_error_codes": {
+      "TS2339": 190,
+      "TS2345": 68,
+      "TS2322": 57,
+      "TS2367": 30,
+      "TS2554": 19,
+      "TS2305": 12
+    },
+    "stage1_error_counts": {
+      "TS2305": 12,
+      "TS2307": 6,
+      "TS2614": 1,
+      "TS2459": 1
+    },
+    "notes": "@anthropic-ai/mcpb no longer appears in the tsc log."
+  },
+  "next_candidates": [
+    "Add LspServerConfig to src/services/lsp/types.ts or its declaration boundary.",
+    "Add the targeted fflate sync API declarations for zipSync and unzipSync.",
+    "Add targeted internal-only module declarations for protectedNamespace, attributionTrailer, TerminalCaptureTool prompt, VerifyPlanExecutionTool constants, peerSessions, and workerAgent."
+  ]
+}

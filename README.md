@@ -3,7 +3,7 @@
 An opinionated Claude Code fork focused on routed models, multi-model coordination, and a denser terminal dashboard.
 
 <p align="center">
-  <img src="docs/images/build-success.svg" alt="likecode terminal dashboard screenshot" width="100%" />
+  <img src="docs/images/welcome-dashboard.png" alt="likecode welcome dashboard" width="100%" />
 </p>
 
 <p align="center">
@@ -30,6 +30,15 @@ An opinionated Claude Code fork focused on routed models, multi-model coordinati
 
 ## Quick Start
 
+Clone the repo:
+
+```bash
+git clone git@github.com:3873225350/like-code.git
+cd like-code
+```
+
+Install dependencies and run in dev mode:
+
 ```bash
 bun install
 bun run build
@@ -47,6 +56,138 @@ To build a local standalone binary:
 ```bash
 bun run package:local
 ```
+
+Run the packaged binary directly:
+
+```bash
+./dist/likecode
+```
+
+To expose `likecode` as a global command on your machine:
+
+```bash
+mkdir -p ~/.local/bin
+ln -sf "$(pwd)/dist/likecode" ~/.local/bin/likecode
+```
+
+Make sure `~/.local/bin` is on your `PATH`, then you can start it anywhere with:
+
+```bash
+likecode
+```
+
+For local debugging with permissive filesystem access:
+
+```bash
+likecode --dangerously-skip-permissions
+```
+
+---
+
+## Settings Layout And Precedence
+
+likecode currently uses two related configuration layers:
+
+1. the original Claude Code settings layer
+2. the likecode-specific extension layer
+
+They are read separately, then applied together.
+
+### Standard Claude Code settings
+
+These are the original Claude-style settings files:
+
+- `~/.claude/settings.json`
+  - user-level global defaults
+- `.claude/settings.json`
+  - shared project settings, suitable for committing
+- `.claude/settings.local.json`
+  - personal project override, usually gitignored
+
+Effective precedence inside the standard Claude settings layer is:
+
+```text
+~/.claude/settings.json
+  < .claude/settings.json
+  < .claude/settings.local.json
+  < CLI --settings
+  < managed/policy settings
+```
+
+So for normal Claude settings, local project settings beat shared project settings, and shared project settings beat user-global settings.
+
+### likecode settings
+
+These are the likecode-specific files used for routed models and related extensions:
+
+- `~/.claude/settings.likecode.json`
+  - user-level likecode defaults
+- `.claude/settings.likecode.local.json`
+  - project-level likecode override
+
+Effective precedence inside the likecode layer is:
+
+```text
+~/.claude/settings.likecode.json
+  < .claude/settings.likecode.local.json
+```
+
+So the project's `settings.likecode.local.json` wins over the user-global `settings.likecode.json`.
+
+### Relationship Between The Two Layers
+
+The important rule is:
+
+- standard Claude settings control the normal Claude Code behavior
+- likecode settings add likecode-specific behavior, especially routed-model data
+
+For routed models specifically, the effective order is:
+
+```text
+environment variable model routes
+  > standard Claude settings modelRoutes
+  > likecode settings modelRoutes
+```
+
+And inside the likecode settings portion:
+
+```text
+.claude/settings.likecode.local.json
+  > ~/.claude/settings.likecode.json
+```
+
+In practice, that means:
+
+- if you want team-shared Claude behavior, use `.claude/settings.json`
+- if you want your own project-only Claude override, use `.claude/settings.local.json`
+- if you want likecode route aliases, custom route hosts, and likecode-specific route metadata for this project, use `.claude/settings.likecode.local.json`
+- if you want your own cross-project likecode defaults, use `~/.claude/settings.likecode.json`
+
+Recommended split:
+
+- `.claude/settings.json`: shared hooks, shared plugins, shared Claude behavior
+- `.claude/settings.local.json`: your personal local Claude overrides
+- `~/.claude/settings.likecode.json`: your reusable likecode defaults across projects
+- `.claude/settings.likecode.local.json`: the project's routed-model definitions and aliases
+
+### Example
+
+Typical project setup:
+
+```text
+~/.claude/settings.json
+~/.claude/settings.likecode.json
+<repo>/.claude/settings.json
+<repo>/.claude/settings.local.json
+<repo>/.claude/settings.likecode.local.json
+```
+
+Recommended usage:
+
+- keep generic Claude preferences in `~/.claude/settings.json`
+- keep team-shared project behavior in `.claude/settings.json`
+- keep your machine-specific project tweaks in `.claude/settings.local.json`
+- keep likecode route aliases and route providers in `.claude/settings.likecode.local.json`
 
 ---
 
@@ -106,6 +247,10 @@ Typical behavior:
 
 The monitor flow in this fork is tuned to avoid endless waiting by using bounded checks and a report-oriented finish.
 
+<p align="center">
+  <img src="docs/images/background-tasks-overview.png" alt="likecode multi-agent background tasks" width="100%" />
+</p>
+
 ---
 
 ## Interface Highlights
@@ -117,6 +262,10 @@ The monitor flow in this fork is tuned to avoid endless waiting by using bounded
 - route model alias mapping
 - route source file display
 - quick hint for `alt+b`
+
+<p align="center">
+  <img src="docs/images/welcome-dashboard.png" alt="likecode routed model dashboard" width="100%" />
+</p>
 
 ### Rewind / HUD
 
@@ -130,6 +279,14 @@ Double-press `Esc` on an empty input to open:
 - compact multi-agent footer summaries
 - progress bar previews for local agents
 - task panel optimized for selecting and drilling into running agents
+
+<p align="center">
+  <img src="docs/images/monitor-agent-detail.png" alt="likecode monitor agent detail view" width="100%" />
+</p>
+
+<p align="center">
+  <img src="docs/images/monitor-report.png" alt="likecode multi-agent completion report" width="100%" />
+</p>
 
 ---
 
@@ -168,20 +325,7 @@ README images live in:
 docs/images/
 ```
 
-Right now the repo contains:
-
-- `docs/images/build-success.svg`
-- `docs/images/welcome-dashboard.png`
-- `docs/images/multi-agent-spec-setup.png`
-- `docs/images/monitor-file-checks.png`
-- `docs/images/game-entry-build.png`
-- `docs/images/monitor-report.png`
-- `docs/images/live-monitor-progress.png`
-- `docs/images/background-agents-launch.png`
-- `docs/images/background-tasks-overview.png`
-- `docs/images/monitor-agent-detail.png`
-
-More TUI screenshots can be added there later and referenced directly from the README.
+Current README screenshots are pulled from `docs/images/`, and more TUI captures can be added there later.
 
 ---
 

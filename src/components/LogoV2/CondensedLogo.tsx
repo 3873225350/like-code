@@ -1,13 +1,15 @@
 import * as React from 'react'
+import { homedir } from 'os'
+import { relative } from 'path'
 import { useEffect } from 'react'
 import { useMainLoopModel } from '../../hooks/useMainLoopModel.js'
 import { useTerminalSize } from '../../hooks/useTerminalSize.js'
 import { stringWidth } from '../../ink/stringWidth.js'
 import { Box, Text } from '../../ink.js'
+import { useShortcutDisplay } from '../../keybindings/useShortcutDisplay.js'
 import { useAppState } from '../../state/AppState.js'
 import { getEffortSuffix } from '../../utils/effort.js'
 import { truncate } from '../../utils/format.js'
-import { isFullscreenEnvEnabled } from '../../utils/fullscreen.js'
 import {
   formatModelAndBilling,
   formatReleaseNoteForDisplay,
@@ -20,9 +22,9 @@ import {
 } from '../../utils/logoV2Utils.js'
 import { getWorkspaceApiBaseUrl } from '../../utils/workspaceApiServer.js'
 import { renderModelSetting } from '../../utils/model/model.js'
+import { getModelOptions } from '../../utils/model/modelOptions.js'
+import { getConfiguredModelRouteDetails } from '../../utils/model/modelRoutes.js'
 import { OffscreenFreeze } from '../OffscreenFreeze.js'
-import { AnimatedClawd } from './AnimatedClawd.js'
-import { Clawd } from './Clawd.js'
 import {
   GuestPassesUpsell,
   incrementGuestPassesSeenCount,
@@ -121,10 +123,319 @@ function ConfigLayerLine({ item }: { item: LayeredConfigSummaryItem }) {
   )
 }
 
+function getRouteAliases(alias: string | string[] | undefined): string[] {
+  if (Array.isArray(alias)) {
+    return alias.map(value => value.trim()).filter(Boolean)
+  }
+  return alias?.trim() ? [alias.trim()] : []
+}
+
+function formatRouteSource(source?: string): string | undefined {
+  if (!source) return undefined
+  if (source.includes('MODEL_ROUTES_JSON')) return source
+
+  const cwdRelative = relative(process.cwd(), source)
+  if (cwdRelative && !cwdRelative.startsWith('..')) {
+    return cwdRelative
+  }
+
+  const homeRelative = relative(homedir(), source)
+  if (homeRelative && !homeRelative.startsWith('..')) {
+    return `~/${homeRelative}`
+  }
+
+  return source
+}
+
+function formatRouteHost(baseURL?: string): string | undefined {
+  if (!baseURL) return undefined
+  try {
+    return new URL(baseURL).host
+  } catch {
+    return baseURL
+  }
+}
+
+type RouteModelSummary = {
+  alias: string
+  model: string
+  host?: string
+  source?: string
+}
+
+type RouteModelGroup = {
+  host: string
+  sources: string[]
+  items: RouteModelSummary[]
+}
+
+type AvailableModelSummary = {
+  label: string
+  value: string
+}
+
+function getRouteModelSummaries(): {
+  count: number
+  items: RouteModelSummary[]
+} {
+  const routes = Object.entries(getConfiguredModelRouteDetails()).filter(
+    ([model]) => model.trim() && !model.includes('*'),
+  )
+
+  return {
+    count: routes.length,
+    items: routes.flatMap(([model, route]) => {
+      const aliases = getRouteAliases(route.alias)
+      const names = aliases.length > 0 ? aliases : [model]
+      return names.map(alias => ({
+        alias,
+        model,
+        host: formatRouteHost(route.baseURL),
+        source: formatRouteSource(route.source),
+      }))
+    }),
+  }
+}
+
+function getRouteModelGroups(items: RouteModelSummary[]): RouteModelGroup[] {
+  const groups = new Map<string, RouteModelGroup>()
+  for (const item of items) {
+    const host = item.host ?? 'custom route'
+    const group = groups.get(host) ?? {
+      host,
+      sources: [],
+      items: [],
+    }
+    if (item.source && !group.sources.includes(item.source)) {
+      group.sources.push(item.source)
+    }
+    group.items.push(item)
+    groups.set(host, group)
+  }
+  return [...groups.values()]
+}
+
+function getAvailableModelSummaries(): AvailableModelSummary[] {
+  const routeModels = new Set(Object.keys(getConfiguredModelRouteDetails()))
+  const summaries = getModelOptions(false)
+    .filter(option => option.value !== null)
+    .filter(option => !routeModels.has(String(option.value)))
+    .map(option => {
+      const value = String(option.value)
+      return {
+        label: option.label.trim() || value,
+        value,
+      }
+    })
+
+  const seen = new Set<string>()
+  return summaries.filter(item => {
+    const key = `${item.label}:${item.value}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+function ModelInventoryHeader({
+  title,
+  count,
+  width,
+}: {
+  title: string
+  count: number
+  width: number
+}) {
+  const headerText = `${title} ${count}`
+  const ruleWidth = Math.max(0, width - stringWidth(headerText) - 2)
+
+  return (
+    <Text>
+      <Text color={LIKECODE_BLUE} bold>
+        {title}
+      </Text>
+      <Text dimColor> </Text>
+      <Text color="magentaBright" bold>
+        {count}
+      </Text>
+      {ruleWidth > 4 ? (
+        <Text color={LIKECODE_BLUE}>
+          {' '}{'─'.repeat(Math.floor(ruleWidth / 2))}
+        </Text>
+      ) : null}
+    </Text>
+  )
+}
+
+function AvailableModelLine({
+  item,
+  width,
+}: {
+  item: AvailableModelSummary
+  width: number
+}) {
+  return (
+    <Text wrap="truncate">
+      <Text dimColor>{'  - '}</Text>
+      <Text color="cyanBright" bold>
+        {truncate(item.label, Math.max(10, Math.floor(width * 0.54)))}
+      </Text>
+      <Text dimColor> -> </Text>
+      <Text color="whiteBright">
+        {truncate(item.value, Math.max(10, Math.floor(width * 0.34)))}
+      </Text>
+    </Text>
+  )
+}
+
+function RouteModelLine({
+  item,
+  width,
+}: {
+  item: RouteModelSummary
+  width: number
+}) {
+  return (
+    <Text wrap="truncate">
+      <Text dimColor>{'    - '}</Text>
+      <Text color="cyanBright" bold>
+        {truncate(item.alias, Math.max(8, Math.floor(width * 0.24)))}
+      </Text>
+      <Text dimColor> -> </Text>
+      <Text color="whiteBright">
+        {truncate(item.model, Math.max(12, Math.floor(width * 0.62)))}
+      </Text>
+    </Text>
+  )
+}
+
+function RouteModelGroupView({
+  group,
+  width,
+  marginTop = 1,
+}: {
+  group: RouteModelGroup
+  width: number
+  marginTop?: number
+}) {
+  const sourceText = group.sources.join(', ')
+  const sourceBudget = Math.max(12, width - stringWidth(group.host) - 8)
+
+  return (
+    <Box flexDirection="column" marginTop={marginTop}>
+      <Text wrap="truncate">
+        <Text dimColor>{'  '}</Text>
+        <Text color="greenBright" bold>
+          {truncate(group.host, Math.max(12, Math.floor(width * 0.42)))}
+        </Text>
+        {sourceText ? (
+          <>
+            <Text dimColor> · </Text>
+            <Text dimColor>{truncate(sourceText, sourceBudget, true)}</Text>
+          </>
+        ) : null}
+      </Text>
+      {group.items.map(item => (
+        <RouteModelLine
+          key={`${group.host}-${item.alias}-${item.model}`}
+          item={item}
+          width={width}
+        />
+      ))}
+    </Box>
+  )
+}
+
+function ModelInventory({
+  availableModels,
+  routeModels,
+  width,
+}: {
+  availableModels: AvailableModelSummary[]
+  routeModels: { count: number; items: RouteModelSummary[] }
+  width: number
+}) {
+  if (availableModels.length === 0 && routeModels.items.length === 0) {
+    return null
+  }
+  const availableWidth = width
+  const routeWidth = width
+  const routeGroups = getRouteModelGroups(routeModels.items)
+
+  return (
+    <Box
+      marginTop={0}
+      flexDirection="column"
+      width={width}
+      alignItems="flex-start"
+    >
+      {availableModels.length > 0 ? (
+        <Box
+          flexDirection="column"
+          width={availableWidth}
+        >
+          <ModelInventoryHeader
+            title="Available models"
+            count={availableModels.length}
+            width={availableWidth}
+          />
+          {availableModels.map(item => (
+            <AvailableModelLine
+              key={`${item.label}-${item.value}`}
+              item={item}
+              width={availableWidth}
+            />
+          ))}
+        </Box>
+      ) : null}
+      {routeModels.items.length > 0 ? (
+        <Box
+          marginTop={availableModels.length > 0 ? 1 : 0}
+          flexDirection="column"
+          width={routeWidth}
+        >
+          <ModelInventoryHeader
+            title="Route models"
+            count={routeModels.count}
+            width={routeWidth}
+          />
+          {routeGroups.map((group, index) => (
+            <RouteModelGroupView
+              key={group.host}
+              group={group}
+              width={routeWidth}
+              marginTop={index === 0 ? 0 : 1}
+            />
+          ))}
+        </Box>
+      ) : null}
+    </Box>
+  )
+}
+
+function VerticalDivider({ height }: { height: number }) {
+  return (
+    <Box
+      height={height}
+      borderStyle="single"
+      borderColor={LIKECODE_BLUE}
+      borderTop={false}
+      borderBottom={false}
+      borderRight={false}
+      width={1}
+    />
+  )
+}
+
 export function CondensedLogo() {
   const { columns } = useTerminalSize()
   const agent = useAppState(state => state.agent)
   const effortValue = useAppState(state => state.effortValue)
+  const backgroundTasksShortcut = useShortcutDisplay(
+    'app:toggleBackgroundTasks',
+    'Global',
+    'alt+b',
+  )
   const model = useMainLoopModel()
   const modelDisplayName = renderModelSetting(model)
   const {
@@ -168,16 +479,31 @@ export function CondensedLogo() {
     : `Harzva restored · ${truncatedCwd}`
   const truncatedCommandPath = truncate(commandPath, Math.max(textWidth, 20))
   const webWorkspaceUrl = getWorkspaceApiBaseUrl()
-  const likeWordmark = ['L I K E ♥', 'L I K E ♥', 'L I K E ♥']
+  const likeLogo = [
+    '  /\\_/\\\\',
+    ' ( o.o )',
+    '  > ^ <',
+  ]
   const recentActivity = getRecentActivitySync().slice(0, 3)
   const recentNotes = getRecentReleaseNotesSync(3)
+  const contentWidth = Math.max(columns - 6, 30)
+  const dashboardLayout = columns >= 120
   const rightWidth = Math.max(Math.floor(columns * 0.43), 32)
   const leftWidth = Math.max(columns - rightWidth - 9, 32)
-  const leftPanelWidth = Math.max(leftWidth - 2, 30)
-  const rightPanelWidth = Math.max(rightWidth - 2, 30)
-  const dividerHeight = 12
+  const statusPanelWidth = dashboardLayout
+    ? Math.max(34, Math.floor(contentWidth * 0.3))
+    : Math.max(leftWidth - 2, 30)
+  const rightPanelWidth = dashboardLayout
+    ? Math.max(34, Math.floor(contentWidth * 0.3))
+    : Math.max(rightWidth - 2, 30)
+  const inventoryWidth = dashboardLayout
+    ? Math.max(52, contentWidth - statusPanelWidth - rightPanelWidth - 4)
+    : contentWidth
   const isTwoColumn = columns >= 92
   const title = ` Like Code v2.1.88 `
+  const routeModelSummary = getRouteModelSummaries()
+  const availableModelSummary = getAvailableModelSummaries()
+  const dashboardDividerHeight = 15
 
   return (
     <OffscreenFreeze>
@@ -191,36 +517,39 @@ export function CondensedLogo() {
           flexDirection="column"
         >
           <Box
-            flexDirection={isTwoColumn ? 'row' : 'column'}
-            gap={isTwoColumn ? 1 : 0}
+            flexDirection={dashboardLayout || isTwoColumn ? 'row' : 'column'}
+            gap={dashboardLayout ? 1 : isTwoColumn ? 1 : 0}
           >
             <Box
-              width={isTwoColumn ? leftPanelWidth : undefined}
+              width={dashboardLayout || isTwoColumn ? statusPanelWidth : undefined}
               flexDirection="column"
-              alignItems="center"
-              paddingRight={isTwoColumn ? 1 : 0}
+              alignItems="flex-start"
+              paddingRight={dashboardLayout || isTwoColumn ? 1 : 0}
             >
-              <Text bold>Welcome back!</Text>
-              <Box marginTop={1} marginBottom={1} flexDirection="column" alignItems="center">
-                {likeWordmark.map((line, index) => (
+              <Text>
+                <Text color={LIKECODE_BLUE} bold>
+                  LIKE CODE
+                </Text>
+                <Text color={LIKECODE_HEART} bold>
+                  {' ♥'}
+                </Text>
+              </Text>
+              <Box marginTop={1} marginBottom={1} flexDirection="column" alignItems="flex-start">
+                {likeLogo.map((line, index) => (
                   <Text key={`${line}-${index}`} color={LIKECODE_BLUE} bold>
-                    {line.slice(0, -1)}
-                    <Text color={LIKECODE_HEART} bold>
-                      ♥
-                    </Text>
+                    {line}
                   </Text>
                 ))}
-                {isFullscreenEnvEnabled() ? <AnimatedClawd /> : <Clawd />}
               </Box>
 
               {shouldSplit ? (
                 <>
                   <Text color={LIKECODE_BLUE} bold>
-                    {truncate(truncatedModel, leftPanelWidth - 2)}
+                    {truncate(truncatedModel, statusPanelWidth - 2)}
                   </Text>
                   <Text>
                     <Text color="yellowBright">
-                      {truncate(truncatedBilling, leftPanelWidth - 2)}
+                      {truncate(truncatedBilling, statusPanelWidth - 2)}
                     </Text>
                     <Text dimColor> · </Text>
                     <Text color="greenBright">Harzva restored</Text>
@@ -229,32 +558,46 @@ export function CondensedLogo() {
               ) : (
                 <Text>
                   <Text color={LIKECODE_BLUE} bold>
-                    {truncate(truncatedModel, leftPanelWidth - 24)}
+                    {truncate(truncatedModel, statusPanelWidth - 24)}
                   </Text>
                   <Text dimColor> · </Text>
                   <Text color="yellowBright">{truncatedBilling}</Text>
                 </Text>
               )}
 
-              <Text dimColor>{truncate(workspaceLine, leftPanelWidth)}</Text>
-              <Text dimColor>{truncate(truncatedCommandPath, leftPanelWidth)}</Text>
+              <Text dimColor>{truncate(workspaceLine, statusPanelWidth)}</Text>
+              <Text dimColor>{truncate(truncatedCommandPath, statusPanelWidth)}</Text>
+              <Box marginTop={1} flexDirection="column">
+                {configSummaryItems.map(item => (
+                  <ConfigLayerLine
+                    key={`${item.label}-${item.source}`}
+                    item={item}
+                  />
+                ))}
+              </Box>
             </Box>
 
+            {dashboardLayout ? (
+              <VerticalDivider height={dashboardDividerHeight} />
+            ) : null}
+
+            {dashboardLayout ? (
+              <Box width={inventoryWidth} flexDirection="column">
+                <ModelInventory
+                  availableModels={availableModelSummary}
+                  routeModels={routeModelSummary}
+                  width={inventoryWidth}
+                />
+              </Box>
+            ) : null}
+
             {isTwoColumn ? (
-              <Box
-                height={dividerHeight}
-                borderStyle="single"
-                borderColor={LIKECODE_BLUE}
-                borderTop={false}
-                borderBottom={false}
-                borderRight={false}
-                width={1}
-              />
+              <VerticalDivider height={dashboardLayout ? dashboardDividerHeight : 12} />
             ) : null}
 
             <Box
               flexGrow={1}
-              width={isTwoColumn ? rightPanelWidth : undefined}
+              width={dashboardLayout || isTwoColumn ? rightPanelWidth : undefined}
               flexDirection="column"
               paddingLeft={isTwoColumn ? 2 : 0}
               marginTop={isTwoColumn ? 0 : 1}
@@ -268,6 +611,9 @@ export function CondensedLogo() {
               </Text>
               <Text>
                 Web <Text color={LIKECODE_BLUE}>{truncate(webWorkspaceUrl, rightPanelWidth - 6)}</Text>
+              </Text>
+              <Text>
+                Press <Text color={LIKECODE_BLUE}>{backgroundTasksShortcut}</Text> for tasks/HUD
               </Text>
 
               <Box marginTop={1} flexDirection="column">
@@ -308,13 +654,17 @@ export function CondensedLogo() {
             </Box>
           </Box>
 
-          <Box marginTop={1} flexDirection="column">
-            {configSummaryItems.map(item => (
-              <ConfigLayerLine
-                key={`${item.label}-${item.source}`}
-                item={item}
+          {!dashboardLayout ? (
+            <Box marginTop={1}>
+              <ModelInventory
+                availableModels={availableModelSummary}
+                routeModels={routeModelSummary}
+                width={inventoryWidth}
               />
-            ))}
+            </Box>
+          ) : null}
+
+          <Box marginTop={1} flexDirection="column">
             {showGuestPassesUpsell ? <GuestPassesUpsell /> : null}
             {!showGuestPassesUpsell && showOverageCreditUpsell ? (
               <OverageCreditUpsell maxWidth={textWidth} twoLine />

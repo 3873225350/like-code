@@ -21,6 +21,7 @@ import ctx_viz from './commands/ctx_viz/index.js'
 import doctor from './commands/doctor/index.js'
 import memory from './commands/memory/index.js'
 import help from './commands/help/index.js'
+import hud from './commands/hud/index.js'
 import ide from './commands/ide/index.js'
 import init from './commands/init.js'
 import initVerifiers from './commands/init-verifiers.js'
@@ -60,6 +61,7 @@ import securityReview from './commands/security-review.js'
 import bughunter from './commands/bughunter/index.js'
 import terminalSetup from './commands/terminalSetup/index.js'
 import usage from './commands/usage/index.js'
+import mmodel from './commands/usemodel/index.js'
 import theme from './commands/theme/index.js'
 import vim from './commands/vim/index.js'
 import { feature } from 'bun:bundle'
@@ -286,6 +288,7 @@ const COMMANDS = memoize((): Command[] => [
   files,
   heapDump,
   help,
+  hud,
   ide,
   init,
   keybindings,
@@ -328,6 +331,7 @@ const COMMANDS = memoize((): Command[] => [
   extraUsageNonInteractive,
   rateLimitOptions,
   usage,
+  mmodel,
   usageReport,
   vim,
   ...(webCmd ? [webCmd] : []),

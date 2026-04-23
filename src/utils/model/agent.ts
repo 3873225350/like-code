@@ -7,6 +7,7 @@ import {
   getRuntimeMainLoopModel,
   parseUserSpecifiedModel,
 } from './model.js'
+import { resolveModelRouteAlias } from './modelRoutes.js'
 import { getAPIProvider } from './providers.js'
 
 export const AGENT_MODEL_OPTIONS = [...MODEL_ALIASES, 'inherit'] as const
@@ -37,7 +38,7 @@ export function getDefaultSubagentModel(): string {
 export function getAgentModel(
   agentModel: string | undefined,
   parentModel: string,
-  toolSpecifiedModel?: ModelAlias,
+  toolSpecifiedModel?: string,
   permissionMode?: PermissionMode,
 ): string {
   if (process.env.CLAUDE_CODE_SUBAGENT_MODEL) {
@@ -68,11 +69,13 @@ export function getAgentModel(
 
   // Prioritize tool-specified model if provided
   if (toolSpecifiedModel) {
-    if (aliasMatchesParentTier(toolSpecifiedModel, parentModel)) {
+    const routedToolModel =
+      resolveModelRouteAlias(toolSpecifiedModel) ?? toolSpecifiedModel
+    if (aliasMatchesParentTier(routedToolModel, parentModel)) {
       return parentModel
     }
-    const model = parseUserSpecifiedModel(toolSpecifiedModel)
-    return applyParentRegionPrefix(model, toolSpecifiedModel)
+    const model = parseUserSpecifiedModel(routedToolModel)
+    return applyParentRegionPrefix(model, routedToolModel)
   }
 
   const agentModelWithExp = agentModel ?? getDefaultSubagentModel()

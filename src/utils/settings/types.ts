@@ -39,10 +39,20 @@ export const EnvironmentVariablesSchema = lazySchema(() =>
 export const ModelRouteConfigSchema = lazySchema(() =>
   z
     .object({
+      alias: z.union([z.string(), z.array(z.string())]).optional(),
       baseURL: z.string().optional(),
       apiKey: z.string().optional(),
       authToken: z.string().optional(),
       headers: z.record(z.string(), z.string()).optional(),
+      pricing: z
+        .object({
+          inputTokens: z.number().optional(),
+          outputTokens: z.number().optional(),
+          promptCacheWriteTokens: z.number().optional(),
+          promptCacheReadTokens: z.number().optional(),
+          webSearchRequests: z.number().optional(),
+        })
+        .optional(),
     })
     .passthrough(),
 )

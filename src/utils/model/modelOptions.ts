@@ -1,5 +1,7 @@
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { getInitialMainLoopModel } from '../../bootstrap/state.js'
+import { homedir } from 'os'
+import { relative } from 'path'
 import {
   isClaudeAISubscriber,
   isMaxSubscriber,
@@ -16,7 +18,10 @@ import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { checkOpus1mAccess, checkSonnet1mAccess } from './check1mAccess.js'
 import { getAPIProvider } from './providers.js'
 import { isModelAllowed } from './modelAllowlist.js'
-import { getConfiguredModelRoutes } from './modelRoutes.js'
+import {
+  getConfiguredModelRouteDetails,
+  type ResolvedModelRouteConfig,
+} from './modelRoutes.js'
 import {
   getCanonicalName,
   getClaudeAiUserDefaultModelDescription,
@@ -43,13 +48,43 @@ export type ModelOption = {
   descriptionForModel?: string
 }
 
+function formatRouteSource(source?: string): string | undefined {
+  if (!source) return undefined
+  if (source.includes('MODEL_ROUTES_JSON')) return source
+
+  const cwdRelative = relative(process.cwd(), source)
+  if (cwdRelative && !cwdRelative.startsWith('..')) {
+    return cwdRelative
+  }
+
+  const homeRelative = relative(homedir(), source)
+  if (homeRelative && !homeRelative.startsWith('..')) {
+    return `~/${homeRelative}`
+  }
+
+  return source
+}
+
+function getRouteDescription(route: ResolvedModelRouteConfig): string {
+  const aliases = Array.isArray(route.alias)
+    ? route.alias
+    : route.alias
+      ? [route.alias]
+      : []
+  const aliasText =
+    aliases.length > 0 ? `alias ${aliases.join(', ')}` : undefined
+  return [aliasText, route.baseURL, formatRouteSource(route.source)]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 function getConfiguredRouteModelOptions(): ModelOption[] {
-  return Object.keys(getConfiguredModelRoutes())
-    .filter(model => model.trim() && !model.includes('*'))
-    .map(model => ({
+  return Object.entries(getConfiguredModelRouteDetails())
+    .filter(([model]) => model.trim() && !model.includes('*'))
+    .map(([model, route]) => ({
       value: model,
       label: model,
-      description: 'Configured provider route',
+      description: getRouteDescription(route) || 'Configured provider route',
     }))
 }
 

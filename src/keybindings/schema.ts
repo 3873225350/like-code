@@ -66,6 +66,7 @@ export const KEYBINDING_ACTIONS = [
   'app:interrupt',
   'app:exit',
   'app:toggleTodos',
+  'app:toggleBackgroundTasks',
   'app:toggleTranscript',
   'app:toggleBrief',
   'app:toggleTeammatePreview',
@@ -141,6 +142,8 @@ export const KEYBINDING_ACTIONS = [
   'messageSelector:down',
   'messageSelector:top',
   'messageSelector:bottom',
+  'messageSelector:previousPage',
+  'messageSelector:nextPage',
   'messageSelector:select',
   // Diff dialog actions
   'diff:dismiss',

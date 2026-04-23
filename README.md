@@ -1,263 +1,190 @@
-# Claude Code — Leaked Source (2026-03-31)
+# likecode
+
+An opinionated Claude Code fork focused on routed models, multi-model coordination, and a denser terminal dashboard.
 
 <p align="center">
-  <img src="docs/images/build-success.svg" alt="Claude Code build success screenshot" width="100%" />
+  <img src="docs/images/build-success.svg" alt="likecode terminal dashboard screenshot" width="100%" />
 </p>
 
-<p align="center"><strong>Build verified:</strong> <code>npm run build</code> and <code>bun dist/cli.js</code> now start successfully.</p>
-
-> **On March 31, 2026, the full source code of Anthropic's Claude Code CLI was leaked** via a `.map` file exposed in their npm registry.
-
----
-
-## How It Leaked
-
-[Chaofan Shou (@Fried_rice)](https://x.com/Fried_rice) discovered the leak and posted it publicly:
-
-> **"Claude code source code has been leaked via a map file in their npm registry!"**
->
-> — [@Fried_rice, March 31, 2026](https://x.com/Fried_rice/status/2038894956459290963)
-
-The source map file in the published npm package contained a reference to the full, unobfuscated TypeScript source, which was downloadable as a zip archive from Anthropic's R2 storage bucket.
+<p align="center">
+  <strong>Current state:</strong> custom route models, alias switching, <code>/mmodel</code> orchestration, HUD/rewind overlay, and improved background task visibility are all working in this fork.
+</p>
 
 ---
 
-## Overview
+## What likecode adds
 
-Claude Code is Anthropic's official CLI tool that lets you interact with Claude directly from the terminal to perform software engineering tasks — editing files, running commands, searching codebases, managing git workflows, and more.
-
-This repository contains the leaked `src/` directory.
-
-- **Leaked on**: 2026-03-31
-- **Language**: TypeScript
-- **Runtime**: Bun
-- **Terminal UI**: React + [Ink](https://github.com/vadimdemedes/ink) (React for CLI)
-- **Scale**: ~1,900 files, 512,000+ lines of code
+- `modelRoutes` with short aliases such as `mm27`, `mm25`, `g5`, `g51`
+- `/model` can switch by alias and shows route source + host
+- `/mmodel` turns natural-language requests into lightweight multi-model orchestration prompts
+- route models can carry optional `pricing` metadata
+- startup dashboard shows:
+  - built-in models
+  - route model alias mapping
+  - route source file and host
+- double-`Esc` opens a `Rewind | HUD` overlay
+- footer and background task UI are tuned for multi-agent work
+- `alt+b` opens the tasks panel quickly
 
 ---
 
-## Directory Structure
+## Quick Start
 
+```bash
+bun install
+bun run build
+bun run dev
 ```
-src/
-├── main.tsx                 # Entrypoint (Commander.js-based CLI parser)
-├── commands.ts              # Command registry
-├── tools.ts                 # Tool registry
-├── Tool.ts                  # Tool type definitions
-├── QueryEngine.ts           # LLM query engine (core Anthropic API caller)
-├── context.ts               # System/user context collection
-├── cost-tracker.ts          # Token cost tracking
-│
-├── commands/                # Slash command implementations (~50)
-├── tools/                   # Agent tool implementations (~40)
-├── components/              # Ink UI components (~140)
-├── hooks/                   # React hooks
-├── services/                # External service integrations
-├── screens/                 # Full-screen UIs (Doctor, REPL, Resume)
-├── types/                   # TypeScript type definitions
-├── utils/                   # Utility functions
-│
-├── bridge/                  # IDE integration bridge (VS Code, JetBrains)
-├── coordinator/             # Multi-agent coordinator
-├── plugins/                 # Plugin system
-├── skills/                  # Skill system
-├── keybindings/             # Keybinding configuration
-├── vim/                     # Vim mode
-├── voice/                   # Voice input
-├── remote/                  # Remote sessions
-├── server/                  # Server mode
-├── memdir/                  # Memory directory (persistent memory)
-├── tasks/                   # Task management
-├── state/                   # State management
-├── migrations/              # Config migrations
-├── schemas/                 # Config schemas (Zod)
-├── entrypoints/             # Initialization logic
-├── ink/                     # Ink renderer wrapper
-├── buddy/                   # Companion sprite (Easter egg)
-├── native-ts/               # Native TypeScript utils
-├── outputStyles/            # Output styling
-├── query/                   # Query pipeline
-└── upstreamproxy/           # Proxy configuration
+
+For a permissive local dev session:
+
+```bash
+bun run dev:danger
+```
+
+To build a local standalone binary:
+
+```bash
+bun run package:local
 ```
 
 ---
 
-## Core Architecture
+## Route Model Config
 
-### 1. Tool System (`src/tools/`)
+Put your route models in `.claude/settings.likecode.local.json`:
 
-Every tool Claude Code can invoke is implemented as a self-contained module. Each tool defines its input schema, permission model, and execution logic.
-
-| Tool | Description |
-|---|---|
-| `BashTool` | Shell command execution |
-| `FileReadTool` | File reading (images, PDFs, notebooks) |
-| `FileWriteTool` | File creation / overwrite |
-| `FileEditTool` | Partial file modification (string replacement) |
-| `GlobTool` | File pattern matching search |
-| `GrepTool` | ripgrep-based content search |
-| `WebFetchTool` | Fetch URL content |
-| `WebSearchTool` | Web search |
-| `AgentTool` | Sub-agent spawning |
-| `SkillTool` | Skill execution |
-| `MCPTool` | MCP server tool invocation |
-| `LSPTool` | Language Server Protocol integration |
-| `NotebookEditTool` | Jupyter notebook editing |
-| `TaskCreateTool` / `TaskUpdateTool` | Task creation and management |
-| `SendMessageTool` | Inter-agent messaging |
-| `TeamCreateTool` / `TeamDeleteTool` | Team agent management |
-| `EnterPlanModeTool` / `ExitPlanModeTool` | Plan mode toggle |
-| `EnterWorktreeTool` / `ExitWorktreeTool` | Git worktree isolation |
-| `ToolSearchTool` | Deferred tool discovery |
-| `CronCreateTool` | Scheduled trigger creation |
-| `RemoteTriggerTool` | Remote trigger |
-| `SleepTool` | Proactive mode wait |
-| `SyntheticOutputTool` | Structured output generation |
-
-### 2. Command System (`src/commands/`)
-
-User-facing slash commands invoked with `/` prefix.
-
-| Command | Description |
-|---|---|
-| `/commit` | Create a git commit |
-| `/review` | Code review |
-| `/compact` | Context compression |
-| `/mcp` | MCP server management |
-| `/config` | Settings management |
-| `/doctor` | Environment diagnostics |
-| `/login` / `/logout` | Authentication |
-| `/memory` | Persistent memory management |
-| `/skills` | Skill management |
-| `/tasks` | Task management |
-| `/vim` | Vim mode toggle |
-| `/diff` | View changes |
-| `/cost` | Check usage cost |
-| `/theme` | Change theme |
-| `/context` | Context visualization |
-| `/pr_comments` | View PR comments |
-| `/resume` | Restore previous session |
-| `/share` | Share session |
-| `/desktop` | Desktop app handoff |
-| `/mobile` | Mobile app handoff |
-
-### 3. Service Layer (`src/services/`)
-
-| Service | Description |
-|---|---|
-| `api/` | Anthropic API client, file API, bootstrap |
-| `mcp/` | Model Context Protocol server connection and management |
-| `oauth/` | OAuth 2.0 authentication flow |
-| `lsp/` | Language Server Protocol manager |
-| `analytics/` | GrowthBook-based feature flags and analytics |
-| `plugins/` | Plugin loader |
-| `compact/` | Conversation context compression |
-| `policyLimits/` | Organization policy limits |
-| `remoteManagedSettings/` | Remote managed settings |
-| `extractMemories/` | Automatic memory extraction |
-| `tokenEstimation.ts` | Token count estimation |
-| `teamMemorySync/` | Team memory synchronization |
-
-### 4. Bridge System (`src/bridge/`)
-
-A bidirectional communication layer connecting IDE extensions (VS Code, JetBrains) with the Claude Code CLI.
-
-- `bridgeMain.ts` — Bridge main loop
-- `bridgeMessaging.ts` — Message protocol
-- `bridgePermissionCallbacks.ts` — Permission callbacks
-- `replBridge.ts` — REPL session bridge
-- `jwtUtils.ts` — JWT-based authentication
-- `sessionRunner.ts` — Session execution management
-
-### 5. Permission System (`src/hooks/toolPermission/`)
-
-Checks permissions on every tool invocation. Either prompts the user for approval/denial or automatically resolves based on the configured permission mode (`default`, `plan`, `bypassPermissions`, `auto`, etc.).
-
-### 6. Feature Flags
-
-Dead code elimination via Bun's `bun:bundle` feature flags:
-
-```typescript
-import { feature } from 'bun:bundle'
-
-// Inactive code is completely stripped at build time
-const voiceCommand = feature('VOICE_MODE')
-  ? require('./commands/voice/index.js').default
-  : null
+```json
+{
+  "modelRoutes": {
+    "MiniMax-M2.7": {
+      "alias": "mm27",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "MiniMax-M2.5": {
+      "alias": "mm25",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "glm-5": {
+      "alias": "g5",
+      "baseURL": "https://mydamoxing.cn/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    }
+  }
+}
 ```
 
-Notable flags: `PROACTIVE`, `KAIROS`, `BRIDGE_MODE`, `DAEMON`, `VOICE_MODE`, `AGENT_TRIGGERS`, `MONITOR_TOOL`
+Then you can use:
 
----
-
-## Key Files in Detail
-
-### `QueryEngine.ts` (~46K lines)
-
-The core engine for LLM API calls. Handles streaming responses, tool-call loops, thinking mode, retry logic, and token counting.
-
-### `Tool.ts` (~29K lines)
-
-Defines base types and interfaces for all tools — input schemas, permission models, and progress state types.
-
-### `commands.ts` (~25K lines)
-
-Manages registration and execution of all slash commands. Uses conditional imports to load different command sets per environment.
-
-### `main.tsx`
-
-Commander.js-based CLI parser + React/Ink renderer initialization. At startup, parallelizes MDM settings, keychain prefetch, and GrowthBook initialization for faster boot.
-
----
-
-## Tech Stack
-
-| Category | Technology |
-|---|---|
-| Runtime | [Bun](https://bun.sh) |
-| Language | TypeScript (strict) |
-| Terminal UI | [React](https://react.dev) + [Ink](https://github.com/vadimdemedes/ink) |
-| CLI Parsing | [Commander.js](https://github.com/tj/commander.js) (extra-typings) |
-| Schema Validation | [Zod v4](https://zod.dev) |
-| Code Search | [ripgrep](https://github.com/BurntSushi/ripgrep) (via GrepTool) |
-| Protocols | [MCP SDK](https://modelcontextprotocol.io), LSP |
-| API | [Anthropic SDK](https://docs.anthropic.com) |
-| Telemetry | OpenTelemetry + gRPC |
-| Feature Flags | GrowthBook |
-| Auth | OAuth 2.0, JWT, macOS Keychain |
-
----
-
-## Notable Design Patterns
-
-### Parallel Prefetch
-
-Startup time is optimized by prefetching MDM settings, keychain reads, and API preconnect in parallel — before heavy module evaluation begins.
-
-```typescript
-// main.tsx — fired as side-effects before other imports
-startMdmRawRead()
-startKeychainPrefetch()
+```text
+/model mm27
+/model g5
 ```
 
-### Lazy Loading
+---
 
-Heavy modules (OpenTelemetry ~400KB, gRPC ~700KB) are deferred via dynamic `import()` until actually needed.
+## `/mmodel`
 
-### Agent Swarms
+`/mmodel` is a prompt-level orchestration helper for multi-model work. It does not hardcode a scheduler; it generates a structured instruction that tells Claude to delegate with explicit model aliases.
 
-Sub-agents are spawned via `AgentTool`, with `coordinator/` handling multi-agent orchestration. `TeamCreateTool` enables team-level parallel work.
+Example:
 
-### Skill System
+```text
+/mmodel 用mm25，以及mm21共同写作完成一个贪吃蛇游戏（源码放在这里templete/v4），mm27监视其完成情况。
+```
 
-Reusable workflows defined in `skills/` and executed through `SkillTool`. Users can add custom skills.
+Typical behavior:
 
-### Plugin Architecture
+- `mm25` handles implementation
+- `mm21` handles UI, README, or a second bounded task
+- `mm27` monitors progress and reports completion
 
-Built-in and third-party plugins are loaded through the `plugins/` subsystem.
+The monitor flow in this fork is tuned to avoid endless waiting by using bounded checks and a report-oriented finish.
+
+---
+
+## Interface Highlights
+
+### Welcome screen
+
+- current model + host
+- built-in model list
+- route model alias mapping
+- route source file display
+- quick hint for `alt+b`
+
+### Rewind / HUD
+
+Double-press `Esc` on an empty input to open:
+
+- `Rewind`: restore or summarize from an earlier point
+- `HUD`: inspect session/project token usage and switch HUD mode
+
+### Background tasks
+
+- compact multi-agent footer summaries
+- progress bar previews for local agents
+- task panel optimized for selecting and drilling into running agents
+
+---
+
+## Scripts
+
+```bash
+bun run dev
+bun run dev:danger
+bun run build
+bun run package:local
+bun run typecheck
+```
+
+---
+
+## Project Notes
+
+This repository started from a Claude Code source study base and is being reshaped into a more experimental operator-focused fork.
+
+Some notable areas in this fork:
+
+- `src/utils/model/modelRoutes.ts`
+- `src/utils/model/modelOptions.ts`
+- `src/components/LogoV2/CondensedLogo.tsx`
+- `src/components/MessageSelector.tsx`
+- `src/components/HudPanel.tsx`
+- `src/components/tasks/BackgroundTaskStatus.tsx`
+
+---
+
+## Image Assets
+
+README images live in:
+
+```text
+docs/images/
+```
+
+Right now the repo contains:
+
+- `docs/images/build-success.svg`
+- `docs/images/welcome-dashboard.png`
+- `docs/images/multi-agent-spec-setup.png`
+- `docs/images/monitor-file-checks.png`
+- `docs/images/game-entry-build.png`
+- `docs/images/monitor-report.png`
+- `docs/images/live-monitor-progress.png`
+- `docs/images/background-agents-launch.png`
+- `docs/images/background-tasks-overview.png`
+- `docs/images/monitor-agent-detail.png`
+
+More TUI screenshots can be added there later and referenced directly from the README.
 
 ---
 
 ## Disclaimer
 
-This repository archives source code that was leaked from Anthropic's npm registry on **2026-03-31**. All original source code is the property of [Anthropic](https://www.anthropic.com).
+This repository includes source material originally studied from a public leak event discussed on 2026-03-31. Original Claude Code source remains the property of Anthropic. This fork is a learning and modification project and is not affiliated with Anthropic.

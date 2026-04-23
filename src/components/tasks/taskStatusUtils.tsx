@@ -5,10 +5,20 @@
 import figures from 'figures';
 import type { TaskStatus } from 'src/Task.js';
 import type { InProcessTeammateTaskState } from 'src/tasks/InProcessTeammateTask/types.js';
+import type { LocalAgentTaskState } from 'src/tasks/LocalAgentTask/LocalAgentTask.js';
+import type { ToolActivity } from 'src/tasks/LocalAgentTask/LocalAgentTask.js';
 import { isPanelAgentTask } from 'src/tasks/LocalAgentTask/LocalAgentTask.js';
-import { isBackgroundTask, type TaskState } from 'src/tasks/types.js';
+import { isBackgroundTask, type BackgroundTaskState, type TaskState } from 'src/tasks/types.js';
 import type { DeepImmutable } from 'src/types/utils.js';
 import { summarizeRecentActivities } from 'src/utils/collapseReadSearch.js';
+import { truncate } from 'src/utils/format.js';
+
+export type EstimatedAgentProgress = {
+  ratio: number;
+  percent: number;
+  stage: string;
+  current: string;
+};
 
 /**
  * Returns true if the given task status represents a terminal (finished) state.
@@ -79,6 +89,97 @@ export function describeTeammateActivity(t: DeepImmutable<InProcessTeammateTaskS
   if (t.awaitingPlanApproval) return 'awaiting approval';
   if (t.isIdle) return 'idle';
   return (t.progress?.recentActivities && summarizeRecentActivities(t.progress.recentActivities)) ?? t.progress?.lastActivity?.activityDescription ?? 'working';
+}
+
+export function describeLocalAgentActivity(t: DeepImmutable<LocalAgentTaskState>): string {
+  if (t.error) return 'error';
+  if (t.status === 'pending') return 'pending';
+  if (t.progress?.summary) return t.progress.summary;
+  return (t.progress?.recentActivities && summarizeRecentActivities(t.progress.recentActivities)) ?? t.progress?.lastActivity?.activityDescription ?? 'working';
+}
+
+export function estimateLocalAgentProgress(agent: DeepImmutable<LocalAgentTaskState>): EstimatedAgentProgress {
+  if (agent.status === 'completed') {
+    return {
+      ratio: 1,
+      percent: 100,
+      stage: 'Completed',
+      current: 'Done',
+    };
+  }
+  if (agent.status === 'failed') {
+    return {
+      ratio: 1,
+      percent: 100,
+      stage: 'Failed',
+      current: agent.error ?? 'Failed',
+    };
+  }
+  if (agent.status === 'killed') {
+    return {
+      ratio: 1,
+      percent: 100,
+      stage: 'Stopped',
+      current: 'Stopped',
+    };
+  }
+
+  const recentActivities = (agent.progress?.recentActivities ?? []) as readonly DeepImmutable<ToolActivity>[];
+  const last = recentActivities.at(-1);
+  const hasRead = recentActivities.some(a => a.isRead || a.isSearch);
+  const hasWrite = recentActivities.some(a => ['Write', 'Edit', 'MultiEdit', 'Update'].includes(a.toolName));
+  const hasShell = recentActivities.some(a => ['Bash', 'Shell', 'Exec'].includes(a.toolName));
+  const toolCount = agent.progress?.toolUseCount ?? 0;
+
+  let ratio = Math.min(0.9, 0.12 + toolCount * 0.08);
+  let stage = 'Starting';
+  if (hasRead) {
+    ratio = Math.max(ratio, 0.28);
+    stage = 'Inspecting';
+  }
+  if (hasWrite) {
+    ratio = Math.max(ratio, 0.58);
+    stage = 'Editing';
+  }
+  if (hasShell) {
+    ratio = Math.max(ratio, hasWrite ? 0.78 : 0.45);
+    stage = hasWrite ? 'Testing / verifying' : 'Running command';
+  }
+  if (agent.progress?.summary) {
+    ratio = Math.max(ratio, 0.72);
+    stage = 'Working';
+  }
+
+  const current =
+    agent.progress?.summary ??
+    last?.activityDescription ??
+    (last ? `${last.toolName} in progress` : describeLocalAgentActivity(agent));
+
+  return {
+    ratio,
+    percent: Math.round(ratio * 100),
+    stage,
+    current: truncate(current, 90, true),
+  };
+}
+
+export function describeBackgroundTaskActivity(t: DeepImmutable<BackgroundTaskState>): string {
+  switch (t.type) {
+    case 'local_agent':
+      return describeLocalAgentActivity(t);
+    case 'in_process_teammate':
+      return describeTeammateActivity(t);
+    case 'local_bash':
+      return t.status === 'pending' ? 'pending' : t.status;
+    case 'remote_agent':
+      return t.status === 'pending' ? 'pending' : t.isRemoteReview ? 'reviewing' : t.status;
+    case 'local_workflow':
+      return t.summary ?? `${t.agentCount} ${t.agentCount === 1 ? 'agent' : 'agents'}`;
+    case 'monitor_mcp':
+      return t.status;
+    case 'dream':
+      return `${t.phase} · ${t.sessionsReviewing} ${t.sessionsReviewing === 1 ? 'session' : 'sessions'}`;
+  }
 }
 
 /**

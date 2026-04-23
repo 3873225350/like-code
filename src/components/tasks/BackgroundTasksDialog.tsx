@@ -31,15 +31,18 @@ import { Box, Text } from '../../ink.js';
 import { useKeybindings } from '../../keybindings/useKeybinding.js';
 import { useShortcutDisplay } from '../../keybindings/useShortcutDisplay.js';
 import { count } from '../../utils/array.js';
+import { truncate } from '../../utils/format.js';
 import { Byline } from '../design-system/Byline.js';
 import { Dialog } from '../design-system/Dialog.js';
 import { KeyboardShortcutHint } from '../design-system/KeyboardShortcutHint.js';
+import { ProgressBar } from '../design-system/ProgressBar.js';
 import { AsyncAgentDetailDialog } from './AsyncAgentDetailDialog.js';
 import { BackgroundTask as BackgroundTaskComponent } from './BackgroundTask.js';
 import { DreamDetailDialog } from './DreamDetailDialog.js';
 import { InProcessTeammateDetailDialog } from './InProcessTeammateDetailDialog.js';
 import { RemoteSessionDetailDialog } from './RemoteSessionDetailDialog.js';
 import { ShellDetailDialog } from './ShellDetailDialog.js';
+import { estimateLocalAgentProgress } from './taskStatusUtils.js';
 type ViewState = {
   mode: 'list';
 } | {
@@ -585,7 +588,7 @@ function Item(t0) {
   const t5 = isSelected && !useGreyPointer ? "suggestion" : undefined;
   let t6;
   if ($[4] !== item.task || $[5] !== item.type || $[6] !== maxActivityWidth) {
-    t6 = item.type === "leader" ? <Text>@{TEAM_LEAD_NAME}</Text> : <BackgroundTaskComponent task={item.task} maxActivityWidth={maxActivityWidth} />;
+    t6 = item.type === "leader" ? <Text>@{TEAM_LEAD_NAME}</Text> : item.type === "local_agent" ? <LocalAgentListProgress task={item.task} maxActivityWidth={maxActivityWidth} /> : <BackgroundTaskComponent task={item.task} maxActivityWidth={maxActivityWidth} />;
     $[4] = item.task;
     $[5] = item.type;
     $[6] = maxActivityWidth;
@@ -612,6 +615,25 @@ function Item(t0) {
     t8 = $[13];
   }
   return t8;
+}
+function LocalAgentListProgress({
+  task,
+  maxActivityWidth
+}: {
+  task: DeepImmutable<LocalAgentTaskState>;
+  maxActivityWidth: number;
+}) {
+  const progress = estimateLocalAgentProgress(task);
+  const agentLabel = task.selectedAgent?.agentType ?? 'agent';
+  const label = `${agentLabel}: ${task.description}`;
+  const barWidth = Math.max(8, Math.min(16, Math.floor(maxActivityWidth * 0.2)));
+  const textWidth = Math.max(16, maxActivityWidth - barWidth - 18);
+  return <Text wrap="truncate">
+      {label}{' '}
+      <ProgressBar ratio={progress.ratio} width={barWidth} fillColor={task.status === 'failed' ? 'error' : task.status === 'killed' ? 'warning' : 'success'} emptyColor="secondaryBorder" />
+      {' '}
+      <Text dimColor>{progress.percent}% · {progress.stage} · {truncate(progress.current, textWidth, true)}</Text>
+    </Text>;
 }
 function TeammateTaskGroups(t0) {
   const $ = _c(3);

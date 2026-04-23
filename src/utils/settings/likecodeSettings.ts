@@ -62,3 +62,12 @@ export function getLikeCodeSettings(): Record<string, unknown> {
     return undefined
   })
 }
+
+export function getLikeCodeSettingsWithSources(): Array<{
+  source: string
+  settings: Record<string, unknown>
+}> {
+  return [getLikeCodeUserSettingsPath(), getLikeCodeProjectSettingsPath()]
+    .map(path => ({ source: path, settings: readOneLikeCodeSettings(path) }))
+    .filter(({ settings }) => Object.keys(settings).length > 0)
+}

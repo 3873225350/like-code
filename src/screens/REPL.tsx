@@ -157,6 +157,7 @@ import { SessionPaneDock } from '../components/SessionPaneDock.js';
 import { SessionTabsBar } from '../components/SessionTabsBar.js';
 import { SessionWorkspacePanel } from '../components/SessionWorkspacePanel.js';
 import { TaskListV2 } from '../components/TaskListV2.js';
+import { ActiveBackgroundTasksPanel } from '../components/tasks/ActiveBackgroundTasksPanel.js';
 import { TeammateViewHeader } from '../components/TeammateViewHeader.js';
 import { useTasksV2WithCollapseEffect } from '../hooks/useTasksV2.js';
 import { maybeMarkProjectOnboardingComplete } from '../projectOnboardingState.js';
@@ -5709,7 +5710,12 @@ export function REPL({
     // doesn't stopPropagation, so without this gate transcript:exit
     // would fire on the same Esc that cancels the bar (child registers
     // first, fires first, bubbles).
-    searchBarOpen: searchOpen
+    searchBarOpen: searchOpen,
+    onOpenBackgroundTasks: isShowingLocalJSXCommand ? undefined : () => {
+      setScreen('prompt');
+      setShowAllInTranscript(false);
+      setShowBashesDialog(true);
+    }
   };
 
   // Use frozen lengths to slice arrays, avoiding memory overhead of cloning
@@ -6018,6 +6024,7 @@ export function REPL({
                 {!showSpinner && !toolJSX?.isLocalJSXCommand && showExpandedTodos && tasksV2 && tasksV2.length > 0 && <Box width="100%" flexDirection="column">
                       <TaskListV2 tasks={tasksV2} isStandalone={true} />
                     </Box>}
+                {!toolJSX?.isLocalJSXCommand && focusedInputDialog && <ActiveBackgroundTasksPanel />}
                 {focusedInputDialog === 'sandbox-permission' && <SandboxPermissionRequest key={sandboxPermissionRequestQueue[0]!.hostPattern.host} hostPattern={sandboxPermissionRequestQueue[0]!.hostPattern} onUserResponse={(response: {
             allow: boolean;
             persistToSettings: boolean;

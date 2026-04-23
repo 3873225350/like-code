@@ -29,6 +29,7 @@ import { LIGHTNING_BOLT } from '../../constants/figures.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import { type ModelAlias, isModelAlias } from './aliases.js'
 import { capitalize } from '../stringUtils.js'
+import { resolveModelRouteAlias } from './modelRoutes.js'
 
 export type ModelShortName = string
 export type ModelName = string
@@ -76,8 +77,13 @@ export function getUserSpecifiedModelSetting(): ModelSetting | undefined {
       undefined
   }
 
+  const resolvedSpecifiedModel =
+    typeof specifiedModel === 'string'
+      ? (resolveModelRouteAlias(specifiedModel) ?? specifiedModel)
+      : specifiedModel
+
   // Ignore the user-specified model if it's not in the availableModels allowlist.
-  if (specifiedModel && !isModelAllowed(specifiedModel)) {
+  if (resolvedSpecifiedModel && !isModelAllowed(resolvedSpecifiedModel)) {
     return undefined
   }
 
@@ -453,6 +459,11 @@ export function parseUserSpecifiedModel(
   modelInput: ModelName | ModelAlias,
 ): ModelName {
   const modelInputTrimmed = modelInput.trim()
+  const routedModel = resolveModelRouteAlias(modelInputTrimmed)
+  if (routedModel) {
+    return routedModel
+  }
+
   const normalizedModel = modelInputTrimmed.toLowerCase()
 
   const has1mTag = has1mContext(normalizedModel)

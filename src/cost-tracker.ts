@@ -46,6 +46,7 @@ import { formatDuration, formatNumber } from './utils/format.js'
 import type { FpsMetrics } from './utils/fpsTracker.js'
 import { getCanonicalName } from './utils/model/model.js'
 import { calculateUSDCost } from './utils/modelCost.js'
+import { recordUsageHistory } from './utils/usageHistory.js'
 export {
   getTotalCostUSD as getTotalCost,
   getTotalDuration,
@@ -282,6 +283,7 @@ export function addToTotalSessionCost(
 ): number {
   const modelUsage = addToTotalModelUsage(cost, usage, model)
   addToTotalCostState(cost, modelUsage, model)
+  recordUsageHistory(cost, usage, model, getSessionId())
 
   const attrs =
     isFastModeEnabled() && usage.speed === 'fast'

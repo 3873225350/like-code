@@ -14,6 +14,7 @@ import { MODEL_ALIASES } from '../../utils/model/aliases.js';
 import { checkOpus1mAccess, checkSonnet1mAccess } from '../../utils/model/check1mAccess.js';
 import { getDefaultMainLoopModelSetting, isOpus1mMergeEnabled, renderDefaultModelSetting } from '../../utils/model/model.js';
 import { isModelAllowed } from '../../utils/model/modelAllowlist.js';
+import { resolveModelRouteAlias } from '../../utils/model/modelRoutes.js';
 import { validateModel } from '../../utils/model/validateModel.js';
 import { getActiveSessionTab, inferSessionTabProvider, normalizeSessionTabsState, updateSessionTab } from '../../utils/sessionTabs.js';
 function ModelPickerWrapper(t0) {
@@ -174,6 +175,12 @@ function SetModelAndClose({
       // Skip validation for default model
       if (!model) {
         setModel(null);
+        return;
+      }
+
+      const routedModel = resolveModelRouteAlias(model);
+      if (routedModel) {
+        setModel(routedModel);
         return;
       }
 

@@ -22,6 +22,7 @@ import {
   getDefaultMainLoopModelSetting,
   type ModelShortName,
 } from './model/model.js'
+import { getRouteForModel, type ModelRouteConfig } from './model/modelRoutes.js'
 
 // @see https://platform.claude.com/docs/en/about-claude/pricing
 export type ModelCosts = {
@@ -87,6 +88,13 @@ export const COST_HAIKU_45 = {
 } as const satisfies ModelCosts
 
 const DEFAULT_UNKNOWN_MODEL_COST = COST_TIER_5_25
+const ZERO_UNKNOWN_ROUTE_COST = {
+  inputTokens: 0,
+  outputTokens: 0,
+  promptCacheWriteTokens: 0,
+  promptCacheReadTokens: 0,
+  webSearchRequests: 0,
+} as const satisfies ModelCosts
 
 /**
  * Get the cost tier for Opus 4.6 based on fast mode.
@@ -141,8 +149,44 @@ function tokensToUSDCost(modelCosts: ModelCosts, usage: Usage): number {
   )
 }
 
+function isFinitePrice(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+}
+
+function getRoutePricing(route: ModelRouteConfig | null): ModelCosts | null {
+  const pricing = route?.pricing
+  if (!pricing) return null
+  if (!isFinitePrice(pricing.inputTokens) || !isFinitePrice(pricing.outputTokens)) {
+    return null
+  }
+
+  return {
+    inputTokens: pricing.inputTokens,
+    outputTokens: pricing.outputTokens,
+    promptCacheWriteTokens: isFinitePrice(pricing.promptCacheWriteTokens)
+      ? pricing.promptCacheWriteTokens
+      : pricing.inputTokens,
+    promptCacheReadTokens: isFinitePrice(pricing.promptCacheReadTokens)
+      ? pricing.promptCacheReadTokens
+      : pricing.inputTokens,
+    webSearchRequests: isFinitePrice(pricing.webSearchRequests)
+      ? pricing.webSearchRequests
+      : 0,
+  }
+}
+
 export function getModelCosts(model: string, usage: Usage): ModelCosts {
+  const route = getRouteForModel(model)
+  const routePricing = getRoutePricing(route)
+  if (routePricing) {
+    return routePricing
+  }
+
   const shortName = getCanonicalName(model)
+  if (route) {
+    trackUnknownModelCost(model, shortName)
+    return ZERO_UNKNOWN_ROUTE_COST
+  }
 
   // Check if this is an Opus 4.6 model with fast mode active.
   if (

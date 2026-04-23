@@ -24,6 +24,7 @@ type Props = {
   onExitTranscript?: () => void;
   virtualScrollActive?: boolean;
   searchBarOpen?: boolean;
+  onOpenBackgroundTasks?: () => void;
 };
 
 /**
@@ -42,7 +43,8 @@ export function GlobalKeybindingHandlers({
   onEnterTranscript,
   onExitTranscript,
   virtualScrollActive,
-  searchBarOpen = false
+  searchBarOpen = false,
+  onOpenBackgroundTasks
 }: Props): null {
   const expandedView = useAppState(s => s.expandedView);
   const setAppState = useSetAppState();
@@ -184,6 +186,12 @@ export function GlobalKeybindingHandlers({
   // Register keybinding handlers
   useKeybinding('app:toggleTodos', handleToggleTodos, {
     context: 'Global'
+  });
+  useKeybinding('app:toggleBackgroundTasks', () => {
+    onOpenBackgroundTasks?.();
+  }, {
+    context: 'Global',
+    isActive: onOpenBackgroundTasks !== undefined
   });
   useKeybinding('app:toggleTranscript', handleToggleTranscript, {
     context: 'Global'

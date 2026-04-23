@@ -41,6 +41,7 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       'ctrl+d': 'app:exit',
       'ctrl+l': 'app:redraw',
       'ctrl+t': 'app:toggleTodos',
+      'alt+b': 'app:toggleBackgroundTasks',
       'ctrl+o': 'app:toggleTranscript',
       ...(feature('KAIROS') || feature('KAIROS_BRIEF')
         ? { 'ctrl+shift+b': 'app:toggleBrief' as const }
@@ -261,6 +262,8 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       'shift+down': 'messageSelector:bottom',
       'meta+down': 'messageSelector:bottom',
       'shift+j': 'messageSelector:bottom',
+      left: 'messageSelector:previousPage',
+      right: 'messageSelector:nextPage',
       enter: 'messageSelector:select',
     },
   },

@@ -279,6 +279,7 @@ function ModeIndicator({
   const hasTaskItems = tasksV2 !== undefined && tasksV2.length > 0;
   const escShortcut = useShortcutDisplay('chat:cancel', 'Chat', 'esc').toLowerCase();
   const todosShortcut = useShortcutDisplay('app:toggleTodos', 'Global', 'ctrl+t');
+  const backgroundTasksShortcut = useShortcutDisplay('app:toggleBackgroundTasks', 'Global', 'alt+b');
   const killAgentsShortcut = useShortcutDisplay('chat:killAgents', 'Chat', 'ctrl+x ctrl+k');
   const voiceKeyShortcut = feature('VOICE_MODE') ?
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
@@ -450,6 +451,11 @@ function ModeIndicator({
   if ((tasksPart || hasCoordinatorTasks) && showHint && !hasTeams) {
     parts.push(<Text dimColor key="manage-tasks">
         {tasksSelected ? <KeyboardShortcutHint shortcut="Enter" action="view tasks" /> : <KeyboardShortcutHint shortcut="↓" action="manage" />}
+      </Text>);
+  }
+  if (showHint) {
+    parts.push(<Text dimColor key="tasks-hud">
+        <KeyboardShortcutHint shortcut={backgroundTasksShortcut} action="tasks/HUD" />
       </Text>);
   }
 

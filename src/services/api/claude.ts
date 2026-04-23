@@ -1979,7 +1979,10 @@ async function* queryModel(
 
         switch (part.type) {
           case 'message_start': {
-            partialMessage = part.message
+            partialMessage = {
+              ...part.message,
+              usage: updateUsage(EMPTY_USAGE, part.message?.usage),
+            }
             ttftMs = Date.now() - start
             usage = updateUsage(usage, part.message?.usage)
             // Capture research from message_start if available (internal only).
@@ -2193,6 +2196,7 @@ async function* queryModel(
             const m: AssistantMessage = {
               message: {
                 ...partialMessage,
+                usage,
                 content: normalizeContentFromAPI(
                   [contentBlock] as BetaContentBlock[],
                   tools,
@@ -2572,6 +2576,7 @@ async function* queryModel(
       const m: AssistantMessage = {
         message: {
           ...result,
+          usage: updateUsage(EMPTY_USAGE, result.usage),
           content: normalizeContentFromAPI(
             result.content,
             tools,
@@ -2669,6 +2674,7 @@ async function* queryModel(
         const m: AssistantMessage = {
           message: {
             ...result,
+            usage: updateUsage(EMPTY_USAGE, result.usage),
             content: normalizeContentFromAPI(
               result.content,
               tools,
@@ -2819,10 +2825,17 @@ async function* queryModel(
     // message_delta handler before any yield. Fallback pushes to newMessages
     // then yields, so tracking must be here to survive .return() at the yield.
     if (fallbackMessage) {
-      const fallbackUsage = fallbackMessage.message.usage as BetaMessageDeltaUsage
+      const fallbackUsage = updateUsage(
+        EMPTY_USAGE,
+        fallbackMessage.message.usage as BetaMessageDeltaUsage | undefined,
+      )
+      fallbackMessage.message.usage = fallbackUsage
       usage = updateUsage(EMPTY_USAGE, fallbackUsage)
       stopReason = fallbackMessage.message.stop_reason as BetaStopReason
-      const fallbackCost = calculateUSDCost(resolvedModel, fallbackUsage as unknown as BetaUsage)
+      const fallbackCost = calculateUSDCost(
+        resolvedModel,
+        fallbackUsage as unknown as BetaUsage,
+      )
       costUSD += addToTotalSessionCost(
         fallbackCost,
         fallbackUsage as unknown as BetaUsage,

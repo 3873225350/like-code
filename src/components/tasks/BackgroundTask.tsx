@@ -9,13 +9,13 @@ import { plural } from 'src/utils/stringUtils.js';
 import { DIAMOND_FILLED, DIAMOND_OPEN } from '../../constants/figures.js';
 import { RemoteSessionProgress } from './RemoteSessionProgress.js';
 import { ShellProgress, TaskStatusText } from './ShellProgress.js';
-import { describeTeammateActivity } from './taskStatusUtils.js';
+import { describeLocalAgentActivity, describeTeammateActivity } from './taskStatusUtils.js';
 type Props = {
   task: DeepImmutable<BackgroundTaskState>;
   maxActivityWidth?: number;
 };
 export function BackgroundTask(t0) {
-  const $ = _c(92);
+  const $ = _c(94);
   const {
     task,
     maxActivityWidth
@@ -135,11 +135,14 @@ export function BackgroundTask(t0) {
         } else {
           t4 = $[28];
         }
+        const t6 = task.status === "running" || task.status === "pending" ? describeLocalAgentActivity(task) : undefined;
+        const t7 = t6 && t6 !== "working" ? <Text dimColor={true}> · {truncate(t6, Math.max(12, Math.floor(activityLimit / 2)), true)}</Text> : undefined;
         let t5;
-        if ($[29] !== t1 || $[30] !== t4) {
-          t5 = <Text>{t1}{" "}{t4}</Text>;
+        if ($[29] !== t1 || $[30] !== t4 || $[92] !== t7) {
+          t5 = <Text>{t1}{t7}{" "}{t4}</Text>;
           $[29] = t1;
           $[30] = t4;
+          $[92] = t7;
           $[31] = t5;
         } else {
           t5 = $[31];

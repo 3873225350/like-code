@@ -19,6 +19,7 @@
     "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --define process.env.USER_TYPE='\"external\"' --define process.env.CLAUDE_CODE_VERIFY_PLAN='\"false\"'",
     "package:local": "bun build src/entrypoints/cli.tsx --compile --outfile dist/likecode --target bun --define process.env.USER_TYPE='\"external\"' --define process.env.CLAUDE_CODE_VERIFY_PLAN='\"false\"'",
     "dev": "bun run src/entrypoints/cli.tsx",
+    "dev:danger": "bun run src/entrypoints/cli.tsx --dangerously-skip-permissions",
     "lint": "eslint src/"
   },
   "dependencies": {

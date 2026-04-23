@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>贪吃蛇游戏</title>
+    <style>
+        body { text-align: center; font-family: Arial; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+        h1 { color: #4ade80; }
+        canvas { border: 2px solid #4ade80; background: #16213e; }
+        p { color: #aaa; }
+        .score { font-size: 24px; color: #fbbf24; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>贪吃蛇</h1>
+    <div class="score">分数: <span id="score">0</span></div>
+    <canvas id="game" width="400" height="400"></canvas>
+    <p>方向键/WASD 移动 | 空格暂停 | R重新开始</p>
+    <script src="snake.js"></script>
+</body>
+</html>

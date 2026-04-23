@@ -26,9 +26,17 @@ import type { Output as FileWriteToolOutput } from 'src/tools/FileWriteTool/File
 import { BASH_STDERR_TAG, BASH_STDOUT_TAG, COMMAND_MESSAGE_TAG, LOCAL_COMMAND_STDERR_TAG, LOCAL_COMMAND_STDOUT_TAG, TASK_NOTIFICATION_TAG, TEAMMATE_MESSAGE_TAG, TICK_TAG } from '../constants/xml.js';
 import { count } from '../utils/array.js';
 import { formatRelativeTimeAgo, truncate } from '../utils/format.js';
+import { getHudMode, setHudMode, type HudMode } from '../utils/hud.js';
 import type { Theme } from '../utils/theme.js';
 import { Divider } from './design-system/Divider.js';
+import { HudPanel } from './HudPanel.js';
 type RestoreOption = 'both' | 'conversation' | 'code' | 'summarize' | 'summarize_up_to' | 'nevermind';
+type SelectorPage = 'rewind' | 'hud';
+type HudSelectorOption = {
+  label: string;
+  description: string;
+  action: () => void;
+};
 function isSummarizeOption(option: RestoreOption | null): option is 'summarize' | 'summarize_up_to' {
   return option === 'summarize' || option === 'summarize_up_to';
 }
@@ -65,6 +73,9 @@ export function MessageSelector({
     uuid: currentUUID
   } as UserMessage], [messages, currentUUID]);
   const [selectedIndex, setSelectedIndex] = useState(messageOptions.length - 1);
+  const [selectorPage, setSelectorPage] = useState<SelectorPage>('rewind');
+  const [hudSelectedIndex, setHudSelectedIndex] = useState(0);
+  const [hudMode, setHudModeState] = useState<HudMode>(() => getHudMode());
 
   // Orient the selected message as the middle of the visible options
   const firstVisibleIndex = Math.max(0, Math.min(selectedIndex - Math.floor(MAX_VISIBLE_MESSAGES / 2), messageOptions.length - MAX_VISIBLE_MESSAGES));
@@ -254,16 +265,68 @@ export function MessageSelector({
     logEvent('tengu_message_selector_cancelled', {});
     onClose();
   }, [onClose, messageToRestore, preselectedMessage]);
-  const moveUp = useCallback(() => setSelectedIndex(prev => Math.max(0, prev - 1)), []);
-  const moveDown = useCallback(() => setSelectedIndex(prev_0 => Math.min(messageOptions.length - 1, prev_0 + 1)), [messageOptions.length]);
-  const jumpToTop = useCallback(() => setSelectedIndex(0), []);
-  const jumpToBottom = useCallback(() => setSelectedIndex(messageOptions.length - 1), [messageOptions.length]);
+  const hudOptions = useMemo(() => [{
+    label: 'HUD full',
+    description: 'Show session, today, all, project, and active task details.',
+    action: () => {
+      setHudMode('full');
+      setHudModeState('full');
+    }
+  }, {
+    label: 'HUD compact',
+    description: 'Show one compact status line.',
+    action: () => {
+      setHudMode('compact');
+      setHudModeState('compact');
+    }
+  }, {
+    label: 'HUD off',
+    description: 'Hide HUD details from the tasks panel.',
+    action: () => {
+      setHudMode('off');
+      setHudModeState('off');
+    }
+  }], []);
+  const moveUp = useCallback(() => {
+    if (selectorPage === 'hud') {
+      setHudSelectedIndex(prev => Math.max(0, prev - 1));
+      return;
+    }
+    setSelectedIndex(prev_0 => Math.max(0, prev_0 - 1));
+  }, [selectorPage]);
+  const moveDown = useCallback(() => {
+    if (selectorPage === 'hud') {
+      setHudSelectedIndex(prev_0 => Math.min(hudOptions.length - 1, prev_0 + 1));
+      return;
+    }
+    setSelectedIndex(prev_1 => Math.min(messageOptions.length - 1, prev_1 + 1));
+  }, [hudOptions.length, messageOptions.length, selectorPage]);
+  const jumpToTop = useCallback(() => {
+    if (selectorPage === 'hud') {
+      setHudSelectedIndex(0);
+      return;
+    }
+    setSelectedIndex(0);
+  }, [selectorPage]);
+  const jumpToBottom = useCallback(() => {
+    if (selectorPage === 'hud') {
+      setHudSelectedIndex(hudOptions.length - 1);
+      return;
+    }
+    setSelectedIndex(messageOptions.length - 1);
+  }, [hudOptions.length, messageOptions.length, selectorPage]);
+  const previousPage = useCallback(() => setSelectorPage(page => page === 'rewind' ? 'hud' : 'rewind'), []);
+  const nextPage = useCallback(() => setSelectorPage(page => page === 'rewind' ? 'hud' : 'rewind'), []);
   const handleSelectCurrent = useCallback(() => {
+    if (selectorPage === 'hud') {
+      hudOptions[hudSelectedIndex]?.action();
+      return;
+    }
     const selected = messageOptions[selectedIndex];
     if (selected) {
       void handleSelect(selected);
     }
-  }, [messageOptions, selectedIndex, handleSelect]);
+  }, [hudOptions, hudSelectedIndex, messageOptions, selectedIndex, selectorPage, handleSelect]);
 
   // Escape to close - uses Confirmation context where escape is bound
   useKeybinding('confirm:no', handleEscape, {
@@ -277,10 +340,12 @@ export function MessageSelector({
     'messageSelector:down': moveDown,
     'messageSelector:top': jumpToTop,
     'messageSelector:bottom': jumpToBottom,
+    'messageSelector:previousPage': previousPage,
+    'messageSelector:nextPage': nextPage,
     'messageSelector:select': handleSelectCurrent
   }, {
     context: 'MessageSelector',
-    isActive: !isRestoring && !error && !messageToRestore && hasMessagesToSelect
+    isActive: !isRestoring && !error && !messageToRestore
   });
   const [fileHistoryMetadata, setFileHistoryMetadata] = useState<Record<number, DiffStats>>({});
   useEffect(() => {
@@ -311,19 +376,25 @@ export function MessageSelector({
     void loadFileHistoryMetadata();
   }, [messageOptions, messages, currentUUID, fileHistory, isFileHistoryEnabled]);
   const canRestoreCode_0 = isFileHistoryEnabled && diffStatsForRestore?.filesChanged && diffStatsForRestore.filesChanged.length > 0;
-  const showPickList = !error && !messageToRestore && !preselectedMessage && hasMessagesToSelect;
+  const showPickList = selectorPage === 'rewind' && !error && !messageToRestore && !preselectedMessage && hasMessagesToSelect;
   return <Box flexDirection="column" width="100%">
       <Divider color="suggestion" />
       <Box flexDirection="column" marginX={1} gap={1}>
-        <Text bold color="suggestion">
-          Rewind
+        <Text bold>
+          <Text color={selectorPage === 'rewind' ? 'suggestion' : 'secondaryText'}>Rewind</Text>
+          <Text dimColor>  |  </Text>
+          <Text color={selectorPage === 'hud' ? 'suggestion' : 'secondaryText'}>HUD</Text>
+          <Text dimColor>  ←/→ switch</Text>
         </Text>
 
         {error && <>
             <Text color="error">Error: {error}</Text>
           </>}
-        {!hasMessagesToSelect && <>
+        {selectorPage === 'rewind' && !hasMessagesToSelect && <>
             <Text>Nothing to rewind to yet.</Text>
+          </>}
+        {selectorPage === 'hud' && !error && !messageToRestore && <>
+            <HudSelectorPage hudMode={hudMode} selectedIndex={hudSelectedIndex} options={hudOptions} />
           </>}
         {!error && messageToRestore && hasMessagesToSelect && <>
             <Text>
@@ -392,10 +463,41 @@ export function MessageSelector({
           </>}
         {!messageToRestore && <Text dimColor italic>
             {exitState.pending ? <>Press {exitState.keyName} again to exit</> : <>
-                {!error && hasMessagesToSelect && 'Enter to continue · '}Esc to
+                {!error && (selectorPage === 'hud' || hasMessagesToSelect) && 'Enter to continue · '}Esc to
                 exit
               </>}
           </Text>}
+      </Box>
+    </Box>;
+}
+function HudSelectorPage({
+  hudMode,
+  selectedIndex,
+  options
+}: {
+  hudMode: HudMode;
+  selectedIndex: number;
+  options: HudSelectorOption[];
+}): React.ReactNode {
+  return <Box flexDirection="column" gap={1}>
+      <Text>
+        <Text dimColor>Current HUD mode </Text>
+        <Text color="suggestion" bold>{hudMode}</Text>
+      </Text>
+      <HudPanel />
+      <Box flexDirection="column">
+        {options.map((option, index) => {
+        const isSelected = index === selectedIndex;
+        return <Box key={option.label} flexDirection="row">
+              <Box width={2} minWidth={2}>
+                {isSelected ? <Text color="permission" bold>{figures.pointer} </Text> : <Text>{'  '}</Text>}
+              </Box>
+              <Text color={isSelected ? 'suggestion' : undefined}>
+                {option.label}
+                <Text dimColor> · {option.description}</Text>
+              </Text>
+            </Box>;
+      })}
       </Box>
     </Box>;
 }

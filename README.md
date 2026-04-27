@@ -2,6 +2,8 @@
 
 An opinionated Claude Code fork focused on routed models, multi-model coordination, and a denser terminal dashboard.
 
+> **Origin:** likecode is derived from the [learn-likecc](https://github.com/Harzva/learn-likecc) project.
+
 <p align="center">
   <img src="docs/images/welcome-dashboard.png" alt="likecode welcome dashboard" width="100%" />
 </p>

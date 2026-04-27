@@ -1,0 +1,138 @@
+# .claude 配置参考（已脱敏）
+# 本文件由 likecode 项目 .claude/ 目录内容整理而成，供团队参考使用。
+# 实际使用时请将 YOUR_TOKEN 替换为真实密钥。
+
+## 1. settings.likecode.local.json（项目级 likecode 路由配置）
+
+```json
+{
+  "modelRoutes": {
+    "MiniMax-M2.7": {
+      "alias": "mm27",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "MiniMax-M2.1": {
+      "alias": "mm21",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "MiniMax-M2.5": {
+      "alias": "mm25",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "glm-5": {
+      "alias": "g5",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "glm-5.1": {
+      "alias": "g51",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "glm-4.7": {
+      "alias": "g47",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "deepseek-v4-flash": {
+      "alias": "d4f",
+      "baseURL": "https://api.deepseek.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "deepseek-v4-pro": {
+      "alias": "d4p",
+      "baseURL": "https://api.deepseek.com/anthropic",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    },
+    "km26": {
+      "alias": "d4p",
+      "baseURL": "https://api.kimi.com/coding/",
+      "authToken": "YOUR_TOKEN",
+      "pricing": {}
+    }
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  }
+}
+```
+
+## 2. settings.local.json（项目级 Claude 标准配置）
+
+```json
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "YOUR_TOKEN",
+    "ANTHROPIC_BASE_URL": "https://api.minimaxi.com/anthropic",
+    "API_TIMEOUT_MS": "3000000",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-5-turbo",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "MiniMax-M2.7",
+    "ANTHROPIC_MODEL": "glm-5-turbo"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile <PROJECT_PATH>/src/commands/usemodel/snake_launcher.py)",
+      "mcp__codex__codex",
+      "Bash(python3 -m py_compile <PROJECT_PATH>/templete/v1/snake_main.py)",
+      "Bash(python3 -m py_compile snake_engine.py snake_main.py)"
+    ]
+  },
+  "model": "MiniMax-M2.7",
+  "enabledPlugins": {
+    "ralph-wiggum@claude-code-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true
+}
+```
+
+## 3. settings.likecode.json（用户级全局 likecode 默认配置）
+
+放置路径：`~/.claude/settings.likecode.json`
+
+内容与 `settings.likecode.local.json` 结构相同，可作为跨项目的 likecode 默认路由。
+
+## 4. 配置优先级说明
+
+```
+环境变量 model routes
+  > 标准 Claude settings modelRoutes
+  > likecode settings modelRoutes
+
+likecode 层级内部：
+.claude/settings.likecode.local.json   （项目级，最高）
+  > ~/.claude/settings.likecode.json   （用户全局，fallback）
+```
+
+## 5. 常用别名速查
+
+| 别名 | 对应模型 | 提供商 |
+|------|----------|--------|
+| mm27 | MiniMax-M2.7 | MiniMax |
+| mm25 | MiniMax-M2.5 | MiniMax |
+| mm21 | MiniMax-M2.1 | MiniMax |
+| g5   | glm-5 | 我的模型 |
+| g51  | glm-5.1 | 我的模型 |
+| g47  | glm-4.7 | 我的模型 |
+| d4f  | deepseek-v4-flash | DeepSeek |
+| d4p  | deepseek-v4-pro | DeepSeek |

@@ -118,6 +118,7 @@ class TasksV2Store {
     const current = (await listTasks(taskListId)).filter(
       t => !t.metadata?._internal,
     )
+    const isFirstLoad = this.#tasks === undefined
     this.#tasks = current
 
     const hasIncomplete = current.some(t => t.status !== 'completed')
@@ -127,12 +128,20 @@ class TasksV2Store {
       this.#hidden = current.length === 0
       this.#clearHideTimer()
     } else if (this.#hideTimer === null && !this.#hidden) {
-      // All tasks just became completed — schedule clear
-      this.#hideTimer = setTimeout(
-        this.#onHideTimerFired.bind(this, taskListId),
-        HIDE_DELAY_MS,
-      )
-      this.#hideTimer.unref()
+      if (isFirstLoad) {
+        // New session/window: don't show stale completed tasks from previous
+        // sessions. Reset immediately instead of waiting for the 5s hide timer.
+        await resetTaskList(taskListId)
+        this.#tasks = []
+        this.#hidden = true
+      } else {
+        // All tasks just became completed — schedule clear
+        this.#hideTimer = setTimeout(
+          this.#onHideTimerFired.bind(this, taskListId),
+          HIDE_DELAY_MS,
+        )
+        this.#hideTimer.unref()
+      }
     }
 
     this.#notify()

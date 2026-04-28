@@ -47,6 +47,22 @@ bun run build
 bun run dev
 ```
 
+### Install cc-route (required for model routing)
+
+like-code delegates model routing to the standalone **cc-route** project:
+
+```bash
+# Option A: npm
+npm install -g cc-route-proxy
+
+# Option B: pre-built binary (no Node.js)
+# See https://github.com/3873225350/cc-route#quick-start
+```
+
+Then configure your routes in `~/.claude/settings.cc-route.json` and launch with `clauder` instead of `claude`.
+
+See [`docs/cc-route-integration.md`](docs/cc-route-integration.md) for full details.
+
 For a permissive local dev session:
 
 ```bash

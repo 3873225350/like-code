@@ -1,74 +1,22 @@
-# .claude 配置参考（已脱敏）
-# 本文件由 likecode 项目 .claude/ 目录内容整理而成，供团队参考使用。
-# 实际使用时请将 YOUR_TOKEN 替换为真实密钥。
+# .claude Configuration Reference (Sanitized)
 
-## 1. settings.likecode.local.json（项目级 likecode 路由配置）
+This file is a sanitized reference snapshot of the project `.claude/` directory.
+Replace placeholders such as `YOUR_TOKEN` and `<PROJECT_PATH>` with local values
+when adapting these examples.
 
-```json
-{
-  "modelRoutes": {
-    "MiniMax-M2.7": {
-      "alias": "mm27",
-      "baseURL": "https://api.minimaxi.com/anthropic",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "MiniMax-M2.1": {
-      "alias": "mm21",
-      "baseURL": "https://api.minimaxi.com/anthropic",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "MiniMax-M2.5": {
-      "alias": "mm25",
-      "baseURL": "https://api.minimaxi.com/anthropic",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "glm-5": {
-      "alias": "g5",
-      "baseURL": "https://mydamoxing.cn",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "glm-5.1": {
-      "alias": "g51",
-      "baseURL": "https://mydamoxing.cn",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "glm-4.7": {
-      "alias": "g47",
-      "baseURL": "https://mydamoxing.cn",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "deepseek-v4-flash": {
-      "alias": "d4f",
-      "baseURL": "https://api.deepseek.com/anthropic",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "deepseek-v4-pro": {
-      "alias": "d4p",
-      "baseURL": "https://api.deepseek.com/anthropic",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    },
-    "km26": {
-      "alias": "d4p",
-      "baseURL": "https://api.kimi.com/coding/",
-      "authToken": "YOUR_TOKEN",
-      "pricing": {}
-    }
-  },
-  "permissions": {
-    "defaultMode": "bypassPermissions"
-  }
-}
+## File Tree
+
+```text
+.claude/
+  settings.local.json
+  settings.likecode.local.json
+  settings.likecode.local copy.json
+  skills/
+    constraint-driven-exploration/
+      SKILL.md
 ```
 
-## 2. settings.local.json（项目级 Claude 标准配置）
+## `.claude/settings.local.json`
 
 ```json
 {
@@ -106,33 +54,197 @@
 }
 ```
 
-## 3. settings.likecode.json（用户级全局 likecode 默认配置）
+## `.claude/settings.likecode.local.json`
 
-放置路径：`~/.claude/settings.likecode.json`
-
-内容与 `settings.likecode.local.json` 结构相同，可作为跨项目的 likecode 默认路由。
-
-## 4. 配置优先级说明
-
+```json
+{
+  "modelRoutes": {
+    "MiniMax-M2.7": {
+      "alias": "mm27",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_MINIMAX_TOKEN",
+      "pricing": {}
+    },
+    "MiniMax-M2.1": {
+      "alias": "mm21",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_MINIMAX_TOKEN",
+      "pricing": {}
+    },
+    "MiniMax-M2.5": {
+      "alias": "mm25",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "YOUR_MINIMAX_TOKEN",
+      "pricing": {}
+    },
+    "glm-5": {
+      "alias": "g5",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_GLM_TOKEN",
+      "pricing": {}
+    },
+    "glm-5.1": {
+      "alias": "g51",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_GLM_TOKEN",
+      "pricing": {}
+    },
+    "glm-4.7": {
+      "alias": "g47",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_GLM_TOKEN",
+      "pricing": {}
+    },
+    "deepseek-v4-flash": {
+      "alias": "d4f",
+      "baseURL": "https://api.deepseek.com/anthropic",
+      "authToken": "YOUR_DEEPSEEK_TOKEN",
+      "pricing": {}
+    },
+    "deepseek-v4-pro": {
+      "alias": "d4p",
+      "baseURL": "https://api.deepseek.com/anthropic",
+      "authToken": "YOUR_DEEPSEEK_TOKEN",
+      "pricing": {}
+    }
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  }
+}
 ```
-环境变量 model routes
-  > 标准 Claude settings modelRoutes
+
+Note: the local source file should be checked for valid JSON before sharing or
+using directly.
+
+## `.claude/settings.likecode.local copy.json`
+
+```json
+{
+  "modelRoutes": {
+    "MiniMax-M2.7": {
+      "alias": "mm27",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "",
+      "pricing": {}
+    },
+    "MiniMax-M2.1": {
+      "alias": "mm21",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "",
+      "pricing": {}
+    },
+    "MiniMax-M2.5": {
+      "alias": "mm25",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "authToken": "",
+      "pricing": {}
+    },
+    "glm-5": {
+      "alias": "g5",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "",
+      "pricing": {}
+    },
+    "glm-5.1": {
+      "alias": "g51",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "",
+      "pricing": {}
+    },
+    "glm-4.7": {
+      "alias": "g47",
+      "baseURL": "https://mydamoxing.cn",
+      "authToken": "YOUR_GLM_TOKEN",
+      "pricing": {}
+    }
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  }
+}
+```
+
+## `.claude/skills/constraint-driven-exploration/SKILL.md`
+
+```markdown
+# Constraint-Driven Multi-Model Exploration
+
+A systematic methodology for solving complex technical problems by discovering
+hard boundaries through multi-model parallel analysis and reference-repository
+validation.
+
+## When to Use
+
+Trigger this skill when any of the following conditions are met:
+
+- You have a non-trivial technical problem with no obviously viable solution.
+- Existing approaches all have fatal flaws.
+- You need to integrate with a closed-source or rapidly-changing platform.
+- You are considering forking or patching upstream code and need to evaluate
+  long-term sustainability.
+- You have multiple competing AI-generated proposals and need a rigorous way to
+  converge on one.
+
+## Core Principle
+
+Hard boundaries are convergence signals. The fastest path is to eliminate
+impossible approaches until only the locally optimal option remains.
+
+## Workflow
+
+1. Scene Anchoring: define the problem, core asset, and immovable constraint.
+2. Multi-Model Divergence: collect perspectives from at least two models.
+3. Constraint Discovery: challenge assumptions and rank constraints as HARD or
+   SOFT.
+4. Reference Repository Validation: compare related projects and their
+   tradeoffs.
+5. Feasible-Region Convergence: eliminate options that violate hard constraints
+   and choose the best remaining architecture.
+6. Artifact Solidification: produce a technical report, methodology log, and
+   implementation roadmap.
+
+## Case Study: Like-Code Model Routing
+
+- Problem: extract like-code's multi-provider routing from a frozen Claude Code
+  fork.
+- Asset: `modelRoutes.ts` runtime registry and alias resolution.
+- Constraint: Claude Code is closed-source and ships minified binaries.
+- Selected architecture: HTTP proxy for API routing, plugin commands for UI
+  orchestration, and status line support for provider visibility.
+- Accepted loss: custom entries in the closed `/model` picker.
+
+## Quick-Start Checklist
+
+- [ ] State the problem in exactly three sentences.
+- [ ] Identify at least one asset and one immovable constraint.
+- [ ] Ask at least two models or agents for parallel analysis.
+- [ ] Prepare a local `reference/` directory for cloned repositories.
+- [ ] Feed real-world constraints back into the analysis iteratively.
+- [ ] Define what functionality can be given up in exchange for robustness.
+```
+
+## Configuration Priority
+
+```text
+Environment variable model routes
+  > Standard Claude settings modelRoutes
   > likecode settings modelRoutes
 
-likecode 层级内部：
-.claude/settings.likecode.local.json   （项目级，最高）
-  > ~/.claude/settings.likecode.json   （用户全局，fallback）
+likecode layer:
+.claude/settings.likecode.local.json
+  > ~/.claude/settings.likecode.json
 ```
 
-## 5. 常用别名速查
+## Alias Quick Reference
 
-| 别名 | 对应模型 | 提供商 |
-|------|----------|--------|
+| Alias | Model | Provider |
+| --- | --- | --- |
 | mm27 | MiniMax-M2.7 | MiniMax |
 | mm25 | MiniMax-M2.5 | MiniMax |
 | mm21 | MiniMax-M2.1 | MiniMax |
-| g5   | glm-5 | 我的模型 |
-| g51  | glm-5.1 | 我的模型 |
-| g47  | glm-4.7 | 我的模型 |
-| d4f  | deepseek-v4-flash | DeepSeek |
-| d4p  | deepseek-v4-pro | DeepSeek |
+| g5 | glm-5 | GLM-compatible endpoint |
+| g51 | glm-5.1 | GLM-compatible endpoint |
+| g47 | glm-4.7 | GLM-compatible endpoint |
+| d4f | deepseek-v4-flash | DeepSeek |
+| d4p | deepseek-v4-pro | DeepSeek |

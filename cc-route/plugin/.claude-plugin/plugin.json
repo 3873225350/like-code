@@ -1,8 +1,0 @@
-{
-  "name": "cc-route",
-  "version": "1.0.0",
-  "description": "Multi-provider model routing for Claude Code — transparent proxy + natural-language multi-model orchestration",
-  "author": {
-    "name": "cc-route contributors"
-  }
-}

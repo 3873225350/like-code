@@ -1,0 +1,30 @@
+[Unit]
+Description=cc-route Proxy — Multi-provider model routing for Claude Code
+After=network.target
+
+[Service]
+Type=simple
+User=%I
+WorkingDirectory=/home/%I/.cc-route
+Environment="NODE_ENV=production"
+Environment="CC_ROUTE_CONFIG=/home/%I/.claude/settings.cc-route.json"
+Environment="CC_ROUTE_PORT=3456"
+Environment="CC_ROUTE_HOST=127.0.0.1"
+ExecStart=/usr/local/bin/cc-route-proxy
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cc-route
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/tmp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

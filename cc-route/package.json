@@ -1,0 +1,38 @@
+{
+  "name": "cc-route",
+  "version": "1.0.0",
+  "description": "Multi-provider model routing wrapper for Claude Code — zero intrusion, update-proof",
+  "private": true,
+  "workspaces": [
+    "proxy",
+    "desktop"
+  ],
+  "scripts": {
+    "build": "cd proxy && npm run build",
+    "dev": "cd proxy && npm run dev",
+    "start": "cd proxy && npm start",
+    "compile": "cd proxy && npm run compile",
+    "compile:all": "cd proxy && npm run compile:all",
+    "install:proxy": "cd proxy && npm install",
+    "install:plugin": "node scripts/install-plugin.js",
+    "launch": "./wrapper/cc-route.sh launch",
+    "docker:build": "docker build -t cc-route-proxy:latest .",
+    "docker:run": "docker run -p 3456:3456 -v ~/.claude/settings.cc-route.json:/app/config.json:ro -e CC_ROUTE_CONFIG=/app/config.json cc-route-proxy:latest",
+    "desktop:dev": "cd desktop && npm run tauri dev",
+    "desktop:build": "node scripts/build-desktop.js",
+    "desktop:icon": "cd desktop && npx tauri icon"
+  },
+  "keywords": [
+    "claude-code",
+    "multi-provider",
+    "model-routing",
+    "proxy",
+    "wrapper"
+  ],
+  "author": "harzva <626609967@qq.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/3873225350/cc-route.git"
+  }
+}

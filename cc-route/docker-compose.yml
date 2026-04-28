@@ -1,0 +1,22 @@
+services:
+  cc-route:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/3873225350/cc-route:latest
+    container_name: cc-route-proxy
+    ports:
+      - "${CC_ROUTE_PORT:-3456}:3456"
+    volumes:
+      - ~/.claude/settings.cc-route.json:/app/config.json:ro
+    environment:
+      - CC_ROUTE_CONFIG=/app/config.json
+      - CC_ROUTE_PORT=3456
+      - CC_ROUTE_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3456/v1/models"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

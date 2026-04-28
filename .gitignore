@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 coverage/
+reference/*
 
 # Logs
 *.log
@@ -18,7 +19,7 @@ bun-debug.log*
 .env
 .env.*
 !.env.example
-
+release/*
 # Runtime and cache files
 .cache/
 .turbo/
